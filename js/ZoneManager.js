@@ -379,7 +379,7 @@ export class ZoneManager {
         // Crear pequeñas variaciones en el terreno
         const vertices = geometry.attributes.position.array;
         for (let i = 0; i < vertices.length; i += 3) {
-            vertices[i + 2] = Math.random() * 0.3; // Pequeñas elevaciones
+            vertices[i + 2] = 0; // Plano, igual que el terreno principal
         }
         geometry.computeVertexNormals();
 
@@ -387,17 +387,17 @@ export class ZoneManager {
         const textureLoader = new THREE.TextureLoader();
         const textureBasePath = 'assets/textures/terrain/';
 
-        const colorMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_Color.png');
-        const normalMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_NormalGL.png');
-        const roughnessMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_Roughness.png');
-        const aoMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_AmbientOcclusion.png');
-        const displacementMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_Displacement.png');
+        const colorMap = textureLoader.load(textureBasePath + 'ground_color.jpg');
+        const normalMap = textureLoader.load(textureBasePath + 'ground_normal.jpg');
+        const roughnessMap = textureLoader.load(textureBasePath + 'ground_roughness.jpg');
+        const aoMap = textureLoader.load(textureBasePath + 'ground_ao.jpg');
+        colorMap.colorSpace = THREE.SRGBColorSpace;
 
         // Configurar repetición de texturas
         const repeatX = 4;
         const repeatY = 4;
 
-        [colorMap, normalMap, roughnessMap, aoMap, displacementMap].forEach(texture => {
+        [colorMap, normalMap, roughnessMap, aoMap].forEach(texture => {
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.RepeatWrapping;
             texture.repeat.set(repeatX, repeatY);
@@ -409,8 +409,6 @@ export class ZoneManager {
             normalMap: normalMap,
             roughnessMap: roughnessMap,
             aoMap: aoMap,
-            displacementMap: displacementMap,
-            displacementScale: 0.1,
             side: THREE.DoubleSide
         });
 

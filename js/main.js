@@ -95,7 +95,7 @@
                 if (audioManager) {
                     audioManager.play('button_click');
                 }
-                interactionSystem.closeDialog();
+                closeDialogWithSound();
             };
 
             // 🎬 FUNCIONES GLOBALES PARA MANEJO DE MÚLTIPLES VIDEOS DE YOUTUBE
@@ -438,13 +438,13 @@
         };
 
         window.addEventListener('keydown', (e) => {
-            const key = e.key.toLowerCase();
+            const key = e.key === ' ' ? 'space' : e.key.toLowerCase(); // la barra espaciadora llega como ' '
             if (key in keys) keys[key] = true;
 
             // Pausa con ESC
             if (key === 'escape' && gameState.isPlaying()) {
                 if (interactionSystem.isInDialog()) {
-                    interactionSystem.closeDialog();
+                    closeDialogWithSound();
                 } else {
                     togglePause();
                 }
@@ -462,7 +462,7 @@
         });
 
         window.addEventListener('keyup', (e) => {
-            const key = e.key.toLowerCase();
+            const key = e.key === ' ' ? 'space' : e.key.toLowerCase(); // la barra espaciadora llega como ' '
             if (key in keys) keys[key] = false;
         });
 
@@ -549,10 +549,24 @@
         }
 
         // ========== FUNCIONES DE CONTROL ==========
+        function playSfx(id) {
+            if (audioManager && !audioManager.isMuted) audioManager.play(id);
+        }
+
+        function closeDialogWithSound() {
+            playSfx('dialog_close');
+            interactionSystem.closeDialog();
+        }
+
+        function openDialogWithSound(data) {
+            playSfx('dialog_open');
+            interactionSystem.openDialog(data);
+        }
+
         function handleInteraction() {
             if (interactionSystem.isInDialog()) {
                 // Cerrar diálogo si está abierto
-                interactionSystem.closeDialog();
+                closeDialogWithSound();
                 return;
             }
 
@@ -562,6 +576,7 @@
             if (interaction.type === 'fragment') {
                 // Recolectar fragmento
                 fragmentManager.collectFragment(interaction.object, (fragmentData) => {
+                    playSfx('collect_fragment');
                     console.log('🎯 Fragmento recolectado:', fragmentData);
 
                     uiManager.updateFragmentUI(fragmentData.id, true);
@@ -578,13 +593,14 @@
                     // Verificar victoria
                     if (fragmentManager.getCollectedCount() === 5) {
                         setTimeout(() => {
+                            playSfx('notification');
                             uiManager.showVictoryMessage();
                         }, 1000);
                     }
                 });
             } else if (interaction.type === 'npc') {
                 // Hablar con NPC
-                interactionSystem.openDialog(interaction.data);
+                openDialogWithSound(interaction.data);
             } else if (interaction.type === 'info_sign') {
                 // Mostrar información del letrero
                 const signData = {
@@ -592,7 +608,7 @@
                     dialog_type: 'Información',
                     historical_cue: interaction.data.description
                 };
-                interactionSystem.openDialog(signData);
+                openDialogWithSound(signData);
             }
         }
 
@@ -652,10 +668,12 @@
 
         function togglePause() {
             if (gameState.isPlaying()) {
+                playSfx('menu_open');
                 gameState.setState('paused');
                 uiManager.showPauseMenu();
                 document.exitPointerLock();
             } else if (gameState.isPaused()) {
+                playSfx('menu_close');
                 gameState.setState('playing');
                 uiManager.hidePauseMenu();
             }
@@ -664,10 +682,12 @@
         function toggleInventory() {
             const invPanel = document.getElementById('full-inventory');
             if (invPanel.style.display === 'none' || !invPanel.style.display) {
+                playSfx('menu_open');
                 invPanel.style.display = 'block';
                 uiManager.updateInventoryPanel(inventory.getInventoryData());
                 document.exitPointerLock();
             } else {
+                playSfx('menu_close');
                 invPanel.style.display = 'none';
             }
         }

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const DOWN = new THREE.Vector3(0, -1, 0);
+const GROUND_TOLERANCE = 3.5; // altura máxima sobre el suelo en la que aún se considera "apoyado"
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const PLAYER_RADIUS = 1.5;
 const DEFAULT_OBSTACLE_RADIUS = 2.0;
@@ -50,8 +50,6 @@ export class Player {
 
         // ⚙️ RAYCASTER AJUSTADO A NUEVA ALTURA
         // Con altura ~1.7 unidades, necesitamos detectar suelo hasta ~2.5 unidades
-        this.raycaster = new THREE.Raycaster();
-        this.raycaster.far = 3.0;  // Antes: 1.5
     }
 
     createPlayerMesh() {
@@ -165,15 +163,14 @@ export class Player {
         // 🔊 SISTEMA DE SONIDOS DE PASOS
         this.updateFootstepSounds(delta);
 
-        // ⚙️ DETECCIÓN DE SUELO AJUSTADA A NUEVA ESCALA
-        this.raycaster.set(this.mesh.position, DOWN);
-
-        const intersects = this.raycaster.intersectObject(ground);
-        this.isGrounded = intersects.length > 0 && intersects[0].distance < 3.5;  // Antes: 2.0
+        // Detección de suelo: el terreno es plano (y = 0), no hace falta raycast
+        // (un raycast exactamente sobre un vértice de la malla puede fallar por precisión)
+        this.isGrounded = this.mesh.position.y < GROUND_TOLERANCE;
 
         // Salto (solo con barra espaciadora)
         if (keys.space && this.isGrounded && this.canJump && canMove) {
             this.velocity.y = this.jumpForce;
+            if (window.audioManager && !window.audioManager.isMuted) window.audioManager.play('jump');
             this.canJump = false;
             this.isJumping = true;
         }

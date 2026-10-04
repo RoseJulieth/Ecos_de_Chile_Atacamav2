@@ -1,0 +1,202 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║              📦 CÓMO USAR ESTA CARPETA DE ASSETS                ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════
+                    🎯 OBJETIVO
+═══════════════════════════════════════════════════════════════════
+
+Esta carpeta está lista para recibir tus modelos 3D.
+El juego ya está configurado para cargarlos automáticamente.
+
+
+═══════════════════════════════════════════════════════════════════
+                    📁 ESTRUCTURA
+═══════════════════════════════════════════════════════════════════
+
+models/
+├── player/              ← Modelo del jugador
+│   └── player.glb
+│
+├── npcs/                ← 10 NPCs
+│   ├── miner/
+│   │   └── miner.glb
+│   ├── storyteller/
+│   │   └── storyteller.glb
+│   └── ...
+│
+└── fragments/           ← 5 fragmentos históricos
+    ├── jarro_pato.glb
+    ├── medalla_atacama.glb
+    └── ...
+
+
+═══════════════════════════════════════════════════════════════════
+                    🚀 PASOS RÁPIDOS
+═══════════════════════════════════════════════════════════════════
+
+1. OBTENER MODELOS
+   ─────────────────────────────────────────────────────────────
+   Opción A: Descargar de Mixamo (gratis)
+   → mixamo.com
+   → Busca "Character"
+   → Descarga con animaciones
+
+   Opción B: Modelar en Blender
+   → Crea tu propio personaje
+   → Exporta como GLTF
+
+   Opción C: Usar modelos gratuitos
+   → sketchfab.com
+   → poly.pizza
+   → Busca "low poly character"
+
+
+2. PREPARAR EN BLENDER
+   ─────────────────────────────────────────────────────────────
+   • Escala correcta (jugador = 1.8 unidades)
+   • Orientación: Mirando hacia +Z
+   • Aplicar transformaciones (Ctrl+A)
+   • Exportar como GLTF 2.0 (.glb)
+
+
+3. COLOCAR ARCHIVOS
+   ─────────────────────────────────────────────────────────────
+   Copia tus archivos .glb a las carpetas correspondientes:
+
+   player/player.glb
+   npcs/miner/miner.glb
+   fragments/jarro_pato.glb
+
+
+4. ACTUALIZAR CÓDIGO (Opcional)
+   ─────────────────────────────────────────────────────────────
+   El código ya está preparado para cargar los modelos.
+   Solo necesitas seguir los nombres de archivo correctos.
+
+   Ver: GUIA_ASSETS.md para detalles
+
+
+═══════════════════════════════════════════════════════════════════
+                    📝 NOMBRES DE ARCHIVO
+═══════════════════════════════════════════════════════════════════
+
+JUGADOR:
+   player/player.glb
+
+NPCs (10):
+   npcs/miner/miner.glb
+   npcs/storyteller/storyteller.glb
+   npcs/soldier/soldier.glb
+   npcs/elder/elder.glb
+   npcs/professor/professor.glb
+   npcs/guide_desert/guide_desert.glb
+   npcs/botanist/botanist.glb
+   npcs/guide_tourist/guide_tourist.glb
+   npcs/fisherman/fisherman.glb
+   npcs/biologist/biologist.glb
+
+FRAGMENTOS (5):
+   fragments/jarro_pato.glb
+   fragments/medalla_atacama.glb
+   fragments/flor_añañuca.glb
+   fragments/pepita_plata.glb
+   fragments/concha_marina.glb
+
+
+═══════════════════════════════════════════════════════════════════
+                    ⚙️ CONFIGURACIÓN DE EXPORTACIÓN
+═══════════════════════════════════════════════════════════════════
+
+En Blender:
+   Archivo → Exportar → glTF 2.0 (.glb)
+
+   Opciones importantes:
+   ☑ +Y Up
+   ☑ Apply Modifiers
+   ☑ Export Animations (para jugador)
+   ☑ Draco Compression (opcional)
+
+
+═══════════════════════════════════════════════════════════════════
+                    ✅ VERIFICACIÓN
+═══════════════════════════════════════════════════════════════════
+
+Después de colocar los archivos:
+
+1. Abre el juego en el navegador
+2. Abre la consola (F12)
+3. Busca mensajes:
+   ✅ "Modelo cargado: player"
+   ✅ "Modelo cargado: npc_miner"
+   ✅ "Modelo cargado: fragment_diaguita"
+
+4. Si ves ⚠️ "Usando placeholder":
+   → El modelo no se encontró
+   → Verifica la ruta del archivo
+   → Verifica el nombre del archivo
+
+
+═══════════════════════════════════════════════════════════════════
+                    🎨 RECOMENDACIONES
+═══════════════════════════════════════════════════════════════════
+
+ESTILO:
+   • Low-poly (1000-5000 polígonos)
+   • Colores planos o texturas simples
+   • Estilo cel-shading (cartoon)
+
+TAMAÑO:
+   • Jugador: 1.8 unidades de altura
+   • NPCs: 1.6-1.9 unidades
+   • Fragmentos: 0.5-0.8 unidades
+
+ANIMACIONES (solo jugador):
+   • idle (reposo)
+   • walk (caminar)
+   • run (correr)
+   • jump (saltar)
+
+
+═══════════════════════════════════════════════════════════════════
+                    📚 DOCUMENTACIÓN COMPLETA
+═══════════════════════════════════════════════════════════════════
+
+Ver archivos README.md en cada carpeta:
+   • player/README.md
+   • npcs/README.md
+   • fragments/README.md
+
+Ver guía completa:
+   • GUIA_ASSETS.md (en la raíz del proyecto)
+
+
+═══════════════════════════════════════════════════════════════════
+                    💡 CONSEJOS
+═══════════════════════════════════════════════════════════════════
+
+1. Empieza con el jugador
+   → Es el más importante
+   → Prueba las animaciones
+
+2. Luego los fragmentos
+   → Son pequeños y simples
+   → Fáciles de modelar
+
+3. Finalmente los NPCs
+   → Puedes usar el mismo modelo base
+   → Cambia colores y accesorios
+
+4. No te preocupes por la perfección
+   → El estilo low-poly es simple
+   → Los placeholders funcionan bien
+
+
+═══════════════════════════════════════════════════════════════════
+
+              ¡LISTO PARA RECIBIR TUS MODELOS! 🎮
+
+═══════════════════════════════════════════════════════════════════

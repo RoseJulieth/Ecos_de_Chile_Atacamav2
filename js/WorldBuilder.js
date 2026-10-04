@@ -49,7 +49,7 @@ export class WorldBuilder {
             normalMap: normalMap,
             roughnessMap: roughnessMap,
             aoMap: aoMap,
-            side: THREE.FrontSide
+            side: THREE.DoubleSide
         });
 
         console.log('✅ Texturas del terreno cargadas');
