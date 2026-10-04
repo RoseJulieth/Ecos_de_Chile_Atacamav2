@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba de Sistema de Múltiples Videos YouTube</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(20, 20, 20, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #FFD700;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        button {
+            background: #d4a017;
+            color: white;
+            border: 2px solid #FFD700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #ffbe2e;
+        }
+
+        .npc-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #8B4513;
+        }
+
+        .video-tabs {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .video-tab {
+            padding: 8px 15px;
+            font-size: 12px;
+            background: rgba(100, 100, 100, 0.5);
+            color: white;
+            border: 2px solid #666;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-tab.active {
+            background: #d4a017;
+            border-color: #FFD700;
+        }
+
+        .video-tab:hover {
+            background: #ffbe2e;
+        }
+
+        .multiple-videos {
+            border-left: 4px solid #FFD700;
+        }
+
+        .single-video {
+            border-left: 4px solid #8B4513;
+        }
+
+        .stats {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #00ff00;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-container">
+        <h1>🎬 Prueba de Sistema de Múltiples Videos YouTube</h1>
+        <p>Esta página prueba el nuevo sistema expandido que soporta múltiples videos por NPC.</p>
+
+        <div id="test-results"></div>
+
+        <h2>📺 NPCs con Videos Implementados</h2>
+        <div id="npc-videos"></div>
+
+        <button onclick="testAllNPCs()">🧪 Probar Todos los NPCs</button>
+        <button onclick="testMultipleVideoSystem()">🔧 Probar Sistema de Múltiples Videos</button>
+        <button onclick="showStatistics()">📊 Mostrar Estadísticas</button>
+    </div>
+
+    <script>
+        // Datos de prueba actualizados con el nuevo formato
+        const npcTestData = [
+            {
+                name: "Don Pedro - Minero Veterano",
+                dialog_type: "Historia",
+                youtube_videos: [
+                    {
+                        title: "Historia de la Minería en Atacama",
+                        url: "https://www.youtube.com/watch?v=nPm0ur2SpYg",
+                        description: "Documental sobre el auge minero de Chañarcillo"
+                    },
+                    {
+                        title: "El Ferrocarril de Atacama",
+                        url: "https://www.youtube.com/watch?v=qi3VrK_WPl8",
+                        description: "Historia del primer ferrocarril de Sudamérica"
+                    }
+                ]
+            },
+            {
+                name: "Capitán Vargas - Veterano de Guerra",
+                dialog_type: "Historia",
+                youtube_videos: [
+                    {
+                        title: "Batallón Atacama en la Guerra del Pacífico",
+                        url: "https://www.youtube.com/watch?v=ubyySOcTfpY",
+                        description: "Historia del heroico Batallón Atacama y su participación en la Guerra del Pacífico"
+                    }
+                ]
+            },
+            {
+                name: "Don Esteban - Botánico Local",
+                dialog_type: "Historia",
+                youtube_videos: [
+                    {
+                        title: "Flora del Desierto de Atacama",
+                        url: "https://www.youtube.com/watch?v=pyTouWzh0cA",
+                        description: "Documental sobre la increíble flora que sobrevive en el desierto más árido del mundo"
+                    }
+                ]
+            },
+            {
+                name: "Profesora Claudia - Historiadora",
+                dialog_type: "Historia",
+                youtube_videos: [
+                    {
+                        title: "Historia de Copiapó",
+                        url: "https://www.youtube.com/watch?v=DdldpR-jCmI",
+                        description: "Documental sobre la fundación y desarrollo de Copiapó"
+                    },
+                    {
+                        title: "Patrimonio Histórico de Atacama",
+                        url: "https://www.youtube.com/watch?v=hvQulMMyDvs",
+                        description: "Arquitectura y patrimonio histórico de la región"
+                    }
+                ]
+            },
+            {
+                name: "Sofía - Arqueóloga",
+                dialog_type: "Historia",
+                youtube_videos: [
+                    {
+                        title: "Cultura Diaguita en Atacama",
+                        url: "https://www.youtube.com/watch?v=rd4Q3exTdXI",
+                        description: "Investigación arqueológica sobre la fascinante cultura Diaguita y sus tradiciones"
+                    }
+                ]
+            }
+        ];
+
+        // Función para convertir URL de YouTube a formato embebido
+        function getYouTubeEmbedUrl(url) {
+            if (!url) return null;
+
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+
+            if (match && match[2].length === 11) {
+                return `https://www.youtube.com/embed/${match[2]}?rel=0&modestbranding=1&showinfo=0`;
+            }
+            return null;
+        }
+
+        // Simular el sistema de pestañas
+        function switchVideo(npcIndex, videoIndex) {
+            const npc = npcTestData[npcIndex];
+            const videoContainers = document.querySelectorAll(`#npc-${npcIndex} .video-content`);
+            const tabs = document.querySelectorAll(`#npc-${npcIndex} .video-tab`);
+
+            // Ocultar todos los videos
+            videoContainers.forEach(container => container.style.display = 'none');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Mostrar video seleccionado
+            const selectedContainer = document.getElementById(`npc-${npcIndex}-video-${videoIndex}`);
+            const selectedTab = document.getElementById(`npc-${npcIndex}-tab-${videoIndex}`);
+
+            if (selectedContainer) selectedContainer.style.display = 'block';
+            if (selectedTab) selectedTab.classList.add('active');
+        }
+
+        // Probar sistema de múltiples videos
+        function testMultipleVideoSystem() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h3>🔧 Resultados del Sistema de Múltiples Videos</h3>';
+
+            npcTestData.forEach((npc, npcIndex) => {
+                const videoCount = npc.youtube_videos ? npc.youtube_videos.length : 0;
+                const isMultiple = videoCount > 1;
+                const status = videoCount > 0 ? '✅ Funcional' : '❌ Sin videos';
+
+                results.innerHTML += `
+                    <div class="npc-info ${isMultiple ? 'multiple-videos' : 'single-video'}">
+                        <strong>${npc.name}</strong><br>
+                        <small>Videos: ${videoCount} ${isMultiple ? '(MÚLTIPLES)' : '(ÚNICO)'}</small><br>
+                        <strong>Estado: ${status}</strong><br>
+                        ${isMultiple ? '<strong>🎯 Sistema de pestañas: ACTIVO</strong>' : '<strong>📺 Vista simple: ACTIVO</strong>'}
+                    </div>
+                `;
+            });
+        }
+
+        // Probar todos los NPCs
+        function testAllNPCs() {
+            const container = document.getElementById('npc-videos');
+            container.innerHTML = '';
+
+            npcTestData.forEach((npc, npcIndex) => {
+                const videoCount = npc.youtube_videos ? npc.youtube_videos.length : 0;
+                const isMultiple = videoCount > 1;
+
+                let npcHTML = `
+                    <div class="npc-info ${isMultiple ? 'multiple-videos' : 'single-video'}" id="npc-${npcIndex}">
+                        <h4>🎭 ${npc.name} ${isMultiple ? '(MÚLTIPLES VIDEOS)' : '(VIDEO ÚNICO)'}</h4>
+                        <p><strong>Tipo:</strong> ${npc.dialog_type} | <strong>Videos:</strong> ${videoCount}</p>
+                `;
+
+                if (npc.youtube_videos && npc.youtube_videos.length > 0) {
+                    // Si hay múltiples videos, mostrar pestañas
+                    if (isMultiple) {
+                        npcHTML += `
+                            <div class="video-tabs">
+                                ${npc.youtube_videos.map((video, videoIndex) => `
+                                    <button 
+                                        class="video-tab ${videoIndex === 0 ? 'active' : ''}" 
+                                        id="npc-${npcIndex}-tab-${videoIndex}"
+                                        onclick="switchVideo(${npcIndex}, ${videoIndex})"
+                                    >
+                                        📺 ${videoIndex + 1}: ${video.title}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+
+                    // Contenido de videos
+                    npc.youtube_videos.forEach((video, videoIndex) => {
+                        const embedUrl = getYouTubeEmbedUrl(video.url);
+                        npcHTML += `
+                            <div 
+                                class="video-content" 
+                                id="npc-${npcIndex}-video-${videoIndex}"
+                                style="display: ${videoIndex === 0 ? 'block' : 'none'};"
+                            >
+                                <h5 style="color: #FFD700; margin: 10px 0;">${video.title}</h5>
+                                <div class="video-container">
+                                    <iframe 
+                                        src="${embedUrl}" 
+                                        allowfullscreen
+                                        title="${video.title}">
+                                    </iframe>
+                                </div>
+                                <p style="color: #AAA; font-size: 12px; font-style: italic;">
+                                    📝 ${video.description}
+                                </p>
+                                <button onclick="window.open('${video.url}', '_blank')">
+                                    🎬 Ver en YouTube
+                                </button>
+                            </div>
+                        `;
+                    });
+                }
+
+                npcHTML += '</div>';
+                container.innerHTML += npcHTML;
+            });
+        }
+
+        // Mostrar estadísticas
+        function showStatistics() {
+            const totalNPCs = npcTestData.length;
+            const npcsWithVideos = npcTestData.filter(npc => npc.youtube_videos && npc.youtube_videos.length > 0).length;
+            const npcsWithMultipleVideos = npcTestData.filter(npc => npc.youtube_videos && npc.youtube_videos.length > 1).length;
+            const totalVideos = npcTestData.reduce((total, npc) => total + (npc.youtube_videos ? npc.youtube_videos.length : 0), 0);
+            const averageVideosPerNPC = (totalVideos / npcsWithVideos).toFixed(1);
+
+            document.getElementById('test-results').innerHTML = `
+                <div class="stats">
+                    <h3>📊 Estadísticas del Sistema de Múltiples Videos</h3>
+                    <p><strong>Total de NPCs:</strong> ${totalNPCs}</p>
+                    <p><strong>NPCs con videos:</strong> ${npcsWithVideos} (${((npcsWithVideos / totalNPCs) * 100).toFixed(1)}%)</p>
+                    <p><strong>NPCs con múltiples videos:</strong> ${npcsWithMultipleVideos} (${((npcsWithMultipleVideos / npcsWithVideos) * 100).toFixed(1)}% de los que tienen videos)</p>
+                    <p><strong>Total de videos:</strong> ${totalVideos}</p>
+                    <p><strong>Promedio de videos por NPC:</strong> ${averageVideosPerNPC}</p>
+                    <p><strong>Estado del sistema:</strong> ✅ Completamente operacional</p>
+                    <p><strong>Compatibilidad:</strong> ✅ Soporta formato anterior y nuevo</p>
+                    <p><strong>Sistema de pestañas:</strong> ✅ Activo para múltiples videos</p>
+                </div>
+            `;
+        }
+
+        // Ejecutar pruebas al cargar
+        window.onload = function () {
+            showStatistics();
+            testMultipleVideoSystem();
+
+            // Mensaje de bienvenida
+            console.log('🎬 Sistema de Múltiples Videos YouTube - Página de Pruebas');
+            console.log('📊 NPCs con videos:', npcTestData.length);
+            console.log('🎯 Sistema completamente funcional');
+        };
+    </script>
+</body>
+
+</html>

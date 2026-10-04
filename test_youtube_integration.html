@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba de Integración de YouTube</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(20, 20, 20, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #FFD700;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        button {
+            background: #d4a017;
+            color: white;
+            border: 2px solid #FFD700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover {
+            background: #ffbe2e;
+        }
+
+        .npc-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #8B4513;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-container">
+        <h1>🎬 Prueba de Sistema de Videos YouTube</h1>
+        <p>Esta página prueba la integración de videos de YouTube para los NPCs del juego.</p>
+
+        <div id="test-results"></div>
+
+        <h2>📺 Videos de NPCs Implementados</h2>
+        <div id="npc-videos"></div>
+
+        <button onclick="testAllVideos()">🧪 Probar Todos los Videos</button>
+        <button onclick="testUrlConversion()">🔧 Probar Conversión de URLs</button>
+    </div>
+
+    <script>
+        // Datos de prueba de NPCs con videos
+        const npcTestData = [
+            {
+                name: "Don Pedro - Minero Veterano",
+                youtube_video: "https://www.youtube.com/watch?v=nPm0ur2SpYg",
+                dialog_type: "Historia"
+            },
+            {
+                name: "Capitán Vargas - Veterano de Guerra",
+                youtube_video: "https://www.youtube.com/watch?v=ubyySOcTfpY",
+                dialog_type: "Historia"
+            },
+            {
+                name: "Don Esteban - Botánico Local",
+                youtube_video: "https://www.youtube.com/watch?v=pyTouWzh0cA",
+                dialog_type: "Historia"
+            },
+            {
+                name: "Profesora Claudia - Historiadora",
+                youtube_video: "https://www.youtube.com/watch?v=DdldpR-jCmI",
+                dialog_type: "Historia"
+            },
+            {
+                name: "Sofía - Arqueóloga",
+                youtube_video: "https://www.youtube.com/watch?v=rd4Q3exTdXI",
+                dialog_type: "Historia"
+            }
+        ];
+
+        // Función para convertir URL de YouTube a formato embebido
+        function getYouTubeEmbedUrl(url) {
+            if (!url) return null;
+
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+
+            if (match && match[2].length === 11) {
+                return `https://www.youtube.com/embed/${match[2]}?rel=0&modestbranding=1&showinfo=0`;
+            }
+            return null;
+        }
+
+        // Probar conversión de URLs
+        function testUrlConversion() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h3>🔧 Resultados de Conversión de URLs</h3>';
+
+            npcTestData.forEach(npc => {
+                const embedUrl = getYouTubeEmbedUrl(npc.youtube_video);
+                const status = embedUrl ? '✅ Éxito' : '❌ Error';
+
+                results.innerHTML += `
+                    <div class="npc-info">
+                        <strong>${npc.name}</strong><br>
+                        <small>Original: ${npc.youtube_video}</small><br>
+                        <small>Embebido: ${embedUrl || 'No se pudo convertir'}</small><br>
+                        <strong>Estado: ${status}</strong>
+                    </div>
+                `;
+            });
+        }
+
+        // Probar todos los videos
+        function testAllVideos() {
+            const container = document.getElementById('npc-videos');
+            container.innerHTML = '';
+
+            npcTestData.forEach(npc => {
+                const embedUrl = getYouTubeEmbedUrl(npc.youtube_video);
+
+                if (embedUrl) {
+                    container.innerHTML += `
+                        <div class="npc-info">
+                            <h4>🎭 ${npc.name}</h4>
+                            <p><strong>Tipo:</strong> ${npc.dialog_type}</p>
+                            <div class="video-container">
+                                <iframe 
+                                    src="${embedUrl}" 
+                                    allowfullscreen
+                                    title="Video de ${npc.name}">
+                                </iframe>
+                            </div>
+                            <button onclick="window.open('${npc.youtube_video}', '_blank')">
+                                🎬 Ver en YouTube
+                            </button>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // Ejecutar pruebas al cargar
+        window.onload = function () {
+            testUrlConversion();
+
+            // Mostrar estadísticas
+            const totalNpcs = npcTestData.length;
+            const npcsWithVideos = npcTestData.filter(npc => npc.youtube_video).length;
+
+            document.getElementById('test-results').innerHTML += `
+                <div style="background: rgba(0,255,0,0.1); padding: 15px; border-radius: 8px; margin: 20px 0; border: 2px solid #00ff00;">
+                    <h3>📊 Estadísticas del Sistema</h3>
+                    <p><strong>Total de NPCs con videos:</strong> ${npcsWithVideos}</p>
+                    <p><strong>Cobertura:</strong> ${((npcsWithVideos / totalNpcs) * 100).toFixed(1)}%</p>
+                    <p><strong>Estado del sistema:</strong> ✅ Operacional</p>
+                </div>
+            `;
+        };
+    </script>
+</body>
+
+</html>

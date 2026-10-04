@@ -1,0 +1,85 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║              🏜️  ECOS DE CHILE: ATACAMA                          ║
+║                   INICIO RÁPIDO EN 3 PASOS                       ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+┌──────────────────────────────────────────────────────────────────┐
+│  PASO 1: ABRIR TERMINAL                                          │
+└──────────────────────────────────────────────────────────────────┘
+
+   Windows: Win + R → cmd → Enter
+   Mac: Cmd + Espacio → Terminal → Enter
+   Linux: Ctrl + Alt + T
+
+
+┌──────────────────────────────────────────────────────────────────┐
+│  PASO 2: NAVEGAR A LA CARPETA                                    │
+└──────────────────────────────────────────────────────────────────┘
+
+   cd ruta/a/ecos-de-chile-atacama
+
+
+┌──────────────────────────────────────────────────────────────────┐
+│  PASO 3: EJECUTAR SERVIDOR                                       │
+└──────────────────────────────────────────────────────────────────┘
+
+   python -m http.server 8000
+
+
+┌──────────────────────────────────────────────────────────────────┐
+│  PASO 4: ABRIR NAVEGADOR                                         │
+└──────────────────────────────────────────────────────────────────┘
+
+   http://localhost:8000
+
+
+═══════════════════════════════════════════════════════════════════
+
+                    ¡ESO ES TODO! 🎮
+
+═══════════════════════════════════════════════════════════════════
+
+
+🎮 CONTROLES BÁSICOS:
+
+   WASD ........... Moverse
+   Mouse .......... Rotar cámara (click primero)
+   Shift .......... Correr
+   Espacio ........ Saltar
+   ESC ............ Pausa
+   I .............. Inventario
+
+
+🎯 OBJETIVO:
+
+   Recolectar 5 fragmentos históricos:
+   
+   🟡 Cultura Diaguita (Este)
+   🔴 Batallón Atacama (Noroeste)
+   🌸 Desierto Florido (Noreste - flores)
+   ⚪ Plata Chañarcillo (Suroeste)
+   🔵 Bahía Inglesa (Sur - agua)
+
+
+💡 CONSEJOS:
+
+   • Los fragmentos brillan y flotan
+   • Acércate para recolectar automáticamente
+   • El progreso se guarda automáticamente
+   • Usa "Continuar Partida" para retomar
+
+
+❓ ¿PROBLEMAS?
+
+   Ver: COMO_EJECUTAR.txt
+   O: README.md
+
+
+═══════════════════════════════════════════════════════════════════
+
+              ¡DISFRUTA EXPLORANDO ATACAMA! 🏜️✨
+
+═══════════════════════════════════════════════════════════════════

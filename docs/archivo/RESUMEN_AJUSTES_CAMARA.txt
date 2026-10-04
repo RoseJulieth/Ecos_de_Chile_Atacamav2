@@ -1,0 +1,70 @@
+═══════════════════════════════════════════════════════════════
+  🎥 AJUSTES DE CÁMARA - RESUMEN RÁPIDO
+═══════════════════════════════════════════════════════════════
+
+✅ CAMBIOS APLICADOS:
+
+📏 DISTANCIA (CameraController.js línea ~10)
+   ANTES: 15 unidades
+   AHORA: 25 unidades (+67% más lejos) ✅
+
+📐 ÁNGULO VERTICAL (CameraController.js línea ~9)
+   ANTES: 0.5 rad (~29°)
+   AHORA: 0.6 rad (~34°) ✅
+
+🎯 PUNTO DE ENFOQUE (CameraController.js línea ~27)
+   ANTES: 1.0 unidades
+   AHORA: 1.5 unidades ✅
+
+📷 FIELD OF VIEW (index.html línea ~503)
+   ANTES: 60°
+   AHORA: 70° (+17% más amplio) ✅
+
+═══════════════════════════════════════════════════════════════
+  RESULTADO
+═══════════════════════════════════════════════════════════════
+
+✅ Cámara más alejada para ver personajes completos
+✅ Vista más elevada para mejor contexto del entorno
+✅ FOV más amplio para sensación de exploración
+✅ Jugador ocupa ~25% de pantalla (composición ideal)
+
+═══════════════════════════════════════════════════════════════
+  CÓMO PROBAR
+═══════════════════════════════════════════════════════════════
+
+1. Recarga el navegador (F5)
+2. La cámara estará MÁS LEJOS
+3. Verás el jugador completo (cabeza a pies)
+4. Verás más NPCs y entorno alrededor
+
+═══════════════════════════════════════════════════════════════
+  AJUSTES OPCIONALES
+═══════════════════════════════════════════════════════════════
+
+Si la cámara está MUY LEJOS:
+   → Cambia distance a 20 en CameraController.js
+
+Si el FOV marea:
+   → Cambia FOV a 65 en index.html
+
+Si quieres vista más cercana (acción):
+   → distance = 18, FOV = 65
+
+Si quieres vista más lejana (estrategia):
+   → distance = 30, FOV = 75
+
+═══════════════════════════════════════════════════════════════
+  ARCHIVOS MODIFICADOS
+═══════════════════════════════════════════════════════════════
+
+✓ js/CameraController.js - Distancia, ángulo, enfoque
+✓ index.html             - FOV de la cámara
+
+═══════════════════════════════════════════════════════════════
+  DOCUMENTACIÓN
+═══════════════════════════════════════════════════════════════
+
+Ver: AJUSTES_CAMARA_APLICADOS.md (guía completa)
+
+═══════════════════════════════════════════════════════════════

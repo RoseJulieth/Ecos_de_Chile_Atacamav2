@@ -1,0 +1,37 @@
+🎮 CAMBIOS IMPLEMENTADOS - VERSIÓN 4
+====================================
+
+✅ JUGADOR:
+- Modelo: Hooded_Adventurer.glb
+- Escala: 1.0
+- Altura corregida: Y = 0.5 (no flota)
+
+✅ NPCs CON MODELOS ESPECÍFICOS:
+1. Don Pedro (npc_001) → Worker.glb
+2. Capitán Vargas (npc_003) → Solider.glb
+3. Don Esteban (npc_005) → Farmer.glb
+4. Capitán Morales (npc_006) → Beach_Character.glb
+5. Abuelo Tomás (npc_008) → Wizardus_Maximus.glb
+6. Javier (npc_010) → Male_Casual.fbx
+7. Diego (npc_013) → Beach_Character.glb
+
+✅ CORRECCIÓN DE ALTURA:
+- Jugador: Y mínimo = 0.5
+- NPCs: Y = 0
+- Detección de suelo mejorada
+- Sin flotación
+
+====================================
+SERVIDOR: http://localhost:8000
+====================================
+
+RECARGA LA PÁGINA (F5) para ver cambios
+
+UBICACIONES DE NPCs:
+- Copiapó (Oeste): Don Pedro, Capitán Vargas, Abuelo Tomás
+- Desierto Florido (Norte): Don Esteban, Javier
+- Bahía Inglesa (Este): Capitán Morales, Diego
+
+====================================
+Estado: ✅ LISTO PARA PROBAR
+====================================

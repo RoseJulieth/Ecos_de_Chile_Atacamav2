@@ -1,0 +1,237 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║          🏜️  ECOS DE CHILE: ATACAMA - GUÍA DE EJECUCIÓN         ║
+║                                                                  ║
+║              Prototipo 3D Educativo - Three.js r160              ║
+║                   Jennifer Astudillo - 2024                      ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+📋 REQUISITOS PREVIOS
+═══════════════════════════════════════════════════════════════════
+
+✓ Navegador moderno (Chrome, Firefox, Edge, Safari)
+✓ Conexión a internet (para cargar Three.js desde CDN)
+✓ Python 3 O Node.js instalado (para servidor local)
+
+
+🚀 OPCIÓN 1: PYTHON (MÁS SIMPLE)
+═══════════════════════════════════════════════════════════════════
+
+1. Abrir terminal/CMD en la carpeta del proyecto
+
+2. Ejecutar:
+   
+   python -m http.server 8000
+
+3. Abrir navegador en:
+   
+   http://localhost:8000
+
+4. ¡Listo! El juego debería cargar
+
+
+🚀 OPCIÓN 2: NODE.JS
+═══════════════════════════════════════════════════════════════════
+
+1. Abrir terminal/CMD en la carpeta del proyecto
+
+2. Ejecutar:
+   
+   npx http-server -p 8000
+
+3. Abrir navegador en:
+   
+   http://localhost:8000
+
+4. ¡Listo! El juego debería cargar
+
+
+🚀 OPCIÓN 3: LIVE SERVER (VS CODE)
+═══════════════════════════════════════════════════════════════════
+
+1. Instalar extensión "Live Server" en VS Code
+
+2. Abrir index.html
+
+3. Click derecho → "Open with Live Server"
+
+4. El navegador se abrirá automáticamente
+
+
+🚀 OPCIÓN 4: OTROS SERVIDORES
+═══════════════════════════════════════════════════════════════════
+
+PHP:
+   php -S localhost:8000
+
+Ruby:
+   ruby -run -ehttpd . -p8000
+
+Node.js (con servidor personalizado):
+   npm install -g serve
+   serve -p 8000
+
+
+⚠️ IMPORTANTE
+═══════════════════════════════════════════════════════════════════
+
+❌ NO abrir index.html directamente (file://)
+   → Los módulos ES6 no funcionarán
+
+✅ SIEMPRE usar un servidor local
+   → Necesario para importar módulos JavaScript
+
+
+🎮 PRIMEROS PASOS EN EL JUEGO
+═══════════════════════════════════════════════════════════════════
+
+1. Click en "Comenzar Exploración"
+
+2. Click en la pantalla para capturar el mouse
+
+3. Controles:
+   - WASD: Moverse
+   - Mouse: Mirar alrededor
+   - Shift: Correr
+   - Espacio: Saltar
+   - ESC: Pausa
+   - I: Inventario
+
+4. Objetivo: Recolectar 5 fragmentos históricos
+
+
+🔍 VERIFICAR QUE FUNCIONA
+═══════════════════════════════════════════════════════════════════
+
+✓ Deberías ver el menú principal con fondo marrón/dorado
+✓ El botón "Comenzar Exploración" debe ser clickeable
+✓ Al iniciar, deberías ver un mundo 3D con terreno arena
+✓ El jugador (cápsula verde) debe ser visible
+✓ Los fragmentos (octaedros de colores) deben flotar y girar
+
+
+🐛 SOLUCIÓN DE PROBLEMAS
+═══════════════════════════════════════════════════════════════════
+
+PROBLEMA: Pantalla negra o blanca
+SOLUCIÓN: 
+   - Abrir consola del navegador (F12)
+   - Verificar errores
+   - Asegurar que estás usando servidor local
+   - Verificar conexión a internet
+
+PROBLEMA: "Failed to load module"
+SOLUCIÓN:
+   - Usar servidor local (no file://)
+   - Verificar que todos los archivos .js están en carpeta js/
+
+PROBLEMA: La cámara no se mueve
+SOLUCIÓN:
+   - Hacer click en la pantalla para capturar el mouse
+   - Verificar que pointer lock está activo
+
+PROBLEMA: El jugador se cae del mapa
+SOLUCIÓN:
+   - Presionar ESC → Salir al Menú
+   - Comenzar nueva exploración
+
+
+📁 ESTRUCTURA DE ARCHIVOS
+═══════════════════════════════════════════════════════════════════
+
+ecos-de-chile-atacama/
+├── index.html              ← Archivo principal
+├── js/
+│   ├── Player.js
+│   ├── CameraController.js
+│   ├── InventorySystem.js
+│   ├── FragmentManager.js
+│   ├── UIManager.js
+│   ├── GameStateManager.js
+│   └── WorldBuilder.js
+├── README.md               ← Documentación completa
+├── GUIA_RAPIDA.md         ← Guía rápida de juego
+├── CHECKLIST.md           ← Lista de verificación
+├── DEPLOYMENT.md          ← Guía de despliegue
+├── NOTAS_TECNICAS.md      ← Documentación técnica
+└── test.html              ← Test de Three.js
+
+
+🧪 PROBAR QUE THREE.JS FUNCIONA
+═══════════════════════════════════════════════════════════════════
+
+1. Abrir test.html en el servidor local:
+   http://localhost:8000/test.html
+
+2. Deberías ver:
+   - Un cubo verde rotando
+   - Mensaje "✅ Three.js cargado correctamente"
+   - Número de versión (160)
+
+3. Si funciona, index.html también debería funcionar
+
+
+📊 RENDIMIENTO ESPERADO
+═══════════════════════════════════════════════════════════════════
+
+FPS: 60 (en hardware moderno)
+Tiempo de carga: 2-3 segundos
+Uso de memoria: ~50-100 MB
+Draw calls: ~30
+
+
+🎯 OBJETIVO DEL JUEGO
+═══════════════════════════════════════════════════════════════════
+
+Recolectar 5 fragmentos históricos:
+
+1. 🟡 Cultura Diaguita (Este)
+2. 🔴 Batallón Atacama (Noroeste)
+3. 🌸 Desierto Florido (Noreste - zona con flores)
+4. ⚪ Plata Chañarcillo (Suroeste)
+5. 🔵 Bahía Inglesa (Sur - zona con agua)
+
+
+💾 GUARDADO AUTOMÁTICO
+═══════════════════════════════════════════════════════════════════
+
+El juego guarda automáticamente:
+- Al recolectar cada fragmento
+- Tu posición en el mapa
+- Progreso de recolección
+
+Para continuar:
+- Menú Principal → "Continuar Partida"
+
+
+📱 COMPATIBILIDAD
+═══════════════════════════════════════════════════════════════════
+
+Navegadores soportados:
+✓ Chrome 90+
+✓ Firefox 88+
+✓ Edge 90+
+✓ Safari 14+
+
+Sistemas operativos:
+✓ Windows 10/11
+✓ macOS 10.15+
+✓ Linux (Ubuntu, Fedora, etc.)
+
+
+📞 AYUDA ADICIONAL
+═══════════════════════════════════════════════════════════════════
+
+Documentación completa: README.md
+Guía de juego: GUIA_RAPIDA.md
+Notas técnicas: NOTAS_TECNICAS.md
+Despliegue web: DEPLOYMENT.md
+
+
+═══════════════════════════════════════════════════════════════════
+
+                    ¡DISFRUTA EL JUEGO! 🎮
+
+═══════════════════════════════════════════════════════════════════

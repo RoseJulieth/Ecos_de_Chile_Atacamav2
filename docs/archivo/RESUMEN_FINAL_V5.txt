@@ -1,0 +1,39 @@
+🎮 CAMBIOS FINALES - VERSIÓN 5
+==============================
+
+✅ ILUMINACIÓN MEJORADA:
+- Luz ambiental: 0.8 (blanca)
+- Sol principal: 2.0 (blanco)
+- Luz de relleno: 0.6 (blanca)
+- Luz trasera: 0.4 (nueva)
+- Luz hemisférica: 0.5 (nueva)
+→ Colores nítidos y brillantes
+
+✅ ESCALAS UNIFORMES:
+- Jugador: 0.1
+- NPCs GLB: 0.1
+- NPC FBX (Javier): 0.001
+→ Todos del mismo tamaño
+
+✅ POSICIÓN A RAS DE SUELO:
+- Jugador: Y = 0
+- NPCs: Y = 0
+- Indicadores ajustados
+→ Sin flotación
+
+==============================
+SERVIDOR: http://localhost:8000
+==============================
+
+RECARGA LA PÁGINA (F5)
+
+VERIFICA:
+1. Colores nítidos en personajes
+2. Jugador no flota
+3. NPCs no flotan
+4. Mismo tamaño jugador/NPCs
+5. Interacción correcta
+
+==============================
+Estado: ✅ LISTO
+==============================

@@ -1,0 +1,142 @@
+{
+    "music": {
+        "main_theme": {
+            "path": "assets/sounds/music/Main_theme.mp3",
+            "volume": 0.4,
+            "loop": true,
+            "description": "Tema principal del menú"
+        },
+        "game_theme": {
+            "path": "assets/sounds/music/Main_theme.mp3",
+            "volume": 0.3,
+            "loop": true,
+            "description": "Música durante el juego"
+        },
+        "copiapo_theme": {
+            "path": "assets/sounds/music/copiapo_theme.mp3",
+            "volume": 0.25,
+            "loop": true,
+            "description": "Música de la zona de Copiapó"
+        },
+        "desierto_theme": {
+            "path": "assets/sounds/music/desierto_theme.mp3",
+            "volume": 0.25,
+            "loop": true,
+            "description": "Música del Desierto Florido"
+        },
+        "bahia_theme": {
+            "path": "assets/sounds/music/bahia_theme.mp3",
+            "volume": 0.25,
+            "loop": true,
+            "description": "Música de Bahía Inglesa"
+        }
+    },
+    "ambient": {
+        "desert_ambience": {
+            "path": "assets/sounds/ambient/desert_ambience.mp3",
+            "volume": 0.25,
+            "loop": true,
+            "description": "Ambiente del desierto de Atacama"
+        },
+        "desert_wind": {
+            "path": "assets/sounds/ambient/desert_wind.mp3",
+            "volume": 0.2,
+            "loop": true,
+            "description": "Viento del desierto"
+        },
+        "ocean_waves": {
+            "path": "assets/sounds/ambient/ocean_waves.mp3",
+            "volume": 0.3,
+            "loop": true,
+            "description": "Olas del mar en Bahía Inglesa"
+        },
+        "seagulls": {
+            "path": "assets/sounds/ambient/seagulls.mp3",
+            "volume": 0.2,
+            "loop": true,
+            "description": "Gaviotas en la playa"
+        },
+        "city_ambient": {
+            "path": "assets/sounds/ambient/city_ambient.mp3",
+            "volume": 0.15,
+            "loop": true,
+            "description": "Ambiente de ciudad en Copiapó"
+        }
+    },
+    "sfx": {
+        "footstep_sand": {
+            "path": "assets/sounds/sfx/Walking_in_Sand_Sound_Effect.mp3",
+            "volume": 0.3,
+            "loop": false,
+            "description": "Pasos en arena del desierto"
+        },
+        "footstep_ground": {
+            "path": "assets/sounds/sfx/footstep_ground.mp3",
+            "volume": 0.4,
+            "loop": false,
+            "description": "Pasos en tierra"
+        },
+        "collect_fragment": {
+            "path": "assets/sounds/sfx/collect_fragment.mp3",
+            "volume": 0.5,
+            "loop": false,
+            "description": "Recolectar fragmento histórico"
+        },
+        "npc_interact": {
+            "path": "assets/sounds/sfx/npc_interact.mp3",
+            "volume": 0.4,
+            "loop": false,
+            "description": "Interactuar con NPC"
+        },
+        "jump": {
+            "path": "assets/sounds/sfx/jump.mp3",
+            "volume": 0.3,
+            "loop": false,
+            "description": "Salto del jugador"
+        },
+        "notification": {
+            "path": "assets/sounds/sfx/notification.mp3",
+            "volume": 0.4,
+            "loop": false,
+            "description": "Notificación general"
+        }
+    },
+    "ui": {
+        "button_click": {
+            "path": "assets/sounds/ui/Button Click  Sound Effect.mp3",
+            "volume": 0.4,
+            "loop": false,
+            "description": "Click en botón de interfaz"
+        },
+        "button_hover": {
+            "path": "assets/sounds/ui/button_hover.mp3",
+            "volume": 0.2,
+            "loop": false,
+            "description": "Hover sobre botón"
+        },
+        "menu_open": {
+            "path": "assets/sounds/ui/menu_open.mp3",
+            "volume": 0.3,
+            "loop": false,
+            "description": "Abrir menú"
+        },
+        "menu_close": {
+            "path": "assets/sounds/ui/menu_close.mp3",
+            "volume": 0.3,
+            "loop": false,
+            "description": "Cerrar menú"
+        },
+        "dialog_open": {
+            "path": "assets/sounds/ui/dialog_open.mp3",
+            "volume": 0.3,
+            "loop": false,
+            "description": "Abrir diálogo con NPC"
+        },
+        "dialog_close": {
+            "path": "assets/sounds/ui/dialog_close.mp3",
+            "volume": 0.3,
+            "loop": false,
+            "description": "Cerrar diálogo con NPC"
+        }
+    }
+}

@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ecos de Chile: Atacama</title>
+    <style>
+        /* ESTILOS DE LA INTERFAZ (UI) */
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: #000;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Menú Principal */
+        #main-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(43, 26, 10, 0.95), rgba(139, 69, 19, 0.9));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #FFD700;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        #main-menu h1 {
+            font-size: 60px;
+            text-shadow: 4px 4px 0 #8B4513, 2px 2px 10px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 4px 4px 0 #8B4513, 2px 2px 10px rgba(255, 215, 0, 0.5);
+            }
+
+            to {
+                text-shadow: 4px 4px 0 #8B4513, 2px 2px 20px rgba(255, 215, 0, 0.9);
+            }
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #d4a017;
+            color: white;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+            margin: 10px;
+            min-width: 250px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        button:hover {
+            background: #ffbe2e;
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(255, 215, 0, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Menú de Pausa */
+        #pause-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 20;
+        }
+
+        /* HUD (Heads-Up Display) */
+        #hud {
+            display: none;
+            pointer-events: none;
+        }
+
+        #inventory-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            border: 2px solid #d4a017;
+            min-width: 220px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+        }
+
+        .fragment-item {
+            margin: 5px 0;
+            padding: 8px;
+            border-bottom: 1px solid #555;
+            font-size: 13px;
+            opacity: 0.4;
+            transition: 0.3s;
+            border-radius: 5px;
+        }
+
+        .collected {
+            opacity: 1;
+            color: #50ff50;
+            font-weight: bold;
+            background: rgba(80, 255, 80, 0.1);
+        }
+
+        #notification {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #FFD700;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+            text-align: center;
+            border: 3px solid #d4a017;
+            max-width: 500px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                bottom: 10%;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 15%;
+                opacity: 1;
+            }
+        }
+
+        #controls-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            font-size: 13px;
+            opacity: 0.8;
+            text-shadow: 2px 2px 4px #000;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: none;
+        }
+
+        /* Inventario Completo */
+        #full-inventory {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            color: white;
+            border: 3px solid #d4a017;
+            display: none;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            pointer-events: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .inv-category {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(50, 50, 50, 0.5);
+            border-radius: 10px;
+            border-left: 4px solid #d4a017;
+        }
+
+        .inv-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(80, 80, 80, 0.3);
+            border-radius: 5px;
+            border-left: 3px solid #FFD700;
+        }
+
+        #click-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            pointer-events: none;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Pantalla de Créditos */
+        #credits-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(20, 10, 5, 0.98), rgba(60, 30, 10, 0.98));
+            display: none;
+            overflow-y: auto;
+            pointer-events: auto;
+            z-index: 30;
+            color: white;
+        }
+
+        #credits-content {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .credits-title {
+            font-size: 48px;
+            color: #FFD700;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .credits-subtitle {
+            font-size: 24px;
+            color: #DDD;
+            margin-bottom: 40px;
+        }
+
+        .credits-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            border-left: 5px solid #FFD700;
+            text-align: left;
+        }
+
+        .credits-section h3 {
+            color: #FFD700;
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .credits-section p {
+            line-height: 1.8;
+            font-size: 16px;
+            color: #DDD;
+            margin: 10px 0;
+        }
+
+        .credits-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .credits-list li {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 5px;
+            border-left: 3px solid #d4a017;
+        }
+
+        .credits-highlight {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        /* Estilos para diálogos con video */
+        #npc-dialog iframe {
+            transition: all 0.3s ease;
+        }
+
+        #npc-dialog iframe:hover {
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        /* Estilos para botones de video */
+        .video-button {
+            background: linear-gradient(135deg, #8B0000, #DC143C);
+            transition: all 0.3s ease;
+        }
+
+        .video-button:hover {
+            background: linear-gradient(135deg, #DC143C, #FF6347);
+            transform: scale(1.05);
+        }
+
+        /* Animación de carga para videos */
+        .video-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            color: #FFD700;
+            font-size: 18px;
+        }
+
+        .video-loading::before {
+            content: "🎬";
+            animation: spin 2s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive para videos en móviles */
+        @media (max-width: 768px) {
+            #npc-dialog {
+                max-width: 95vw !important;
+                padding: 20px !important;
+            }
+
+            #floating-video-player {
+                width: 300px !important;
+                height: 169px !important;
+            }
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+    <div id="ui-layer">
+        <!-- Menú Principal -->
+        <div id="main-menu">
+            <h1>Ecos de Chile</h1>
+            <h2 style="margin-top: -20px; color: white;">Región de Atacama</h2>
+            <button id="btn-start">🎮 Comenzar Exploración</button>
+            <button id="btn-continue" style="display: none;">📂 Continuar Partida</button>
+            <button id="btn-reset" style="background: #8B0000; border-color: #FF4444;">🔄 Reiniciar Progreso</button>
+            <button id="btn-credits">ℹ️ Créditos</button>
+        </div>
+
+        <!-- Menú de Pausa -->
+        <div id="pause-menu">
+            <h1 style="color: #FFD700; margin-bottom: 40px;">⏸️ PAUSA</h1>
+            <button id="btn-resume">▶️ Continuar</button>
+            <button id="btn-inventory-full">📦 Ver Inventario Completo</button>
+            <button id="btn-save">💾 Guardar Progreso</button>
+
+            <!-- Controles de Audio -->
+            <div
+                style="margin: 20px 0; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 2px solid #d4a017;">
+                <h3 style="color: #FFD700; margin: 0 0 15px 0; text-align: center;">🔊 Audio</h3>
+
+                <div style="margin: 10px 0; color: white; text-align: center;">
+                    <label style="display: block; margin-bottom: 5px;">Volumen Master: <span
+                            id="master-vol">80</span>%</label>
+                    <input type="range" id="master-volume" min="0" max="100" value="80" style="width: 200px;">
+                </div>
+
+                <div style="margin: 10px 0; color: white; text-align: center;">
+                    <label style="display: block; margin-bottom: 5px;">Música: <span id="music-vol">70</span>%</label>
+                    <input type="range" id="music-volume" min="0" max="100" value="70" style="width: 200px;">
+                </div>
+
+                <div style="margin: 10px 0; color: white; text-align: center;">
+                    <label style="display: block; margin-bottom: 5px;">Ambiente: <span
+                            id="ambient-vol">60</span>%</label>
+                    <input type="range" id="ambient-volume" min="0" max="100" value="60" style="width: 200px;">
+                </div>
+
+                <div style="margin: 10px 0; color: white; text-align: center;">
+                    <label style="display: block; margin-bottom: 5px;">Efectos: <span id="sfx-vol">80</span>%</label>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="80" style="width: 200px;">
+                </div>
+
+                <button id="btn-mute" style="margin-top: 10px; min-width: 150px;">🔇 Mutear</button>
+            </div>
+
+            <button id="btn-main-menu" style="background: #8B0000; border-color: #FF4444; margin-top: 20px;">🏠 Volver al Menú Principal</button>
+        </div>
+
+        <!-- HUD del Juego -->
+        <div id="hud">
+            <div id="inventory-panel">
+                <h3 style="margin: 0 0 10px 0; text-align: center;">📜 Fragmentos Históricos</h3>
+                <div id="list-fragments"></div>
+                <div style="margin-top: 10px; text-align: center; font-size: 14px; font-weight: bold;">
+                    Progreso: <span id="counter" style="color: #FFD700;">0/5</span>
+                </div>
+            </div>
+            <div id="notification"></div>
+            <div id="controls-hint">
+                <strong>Controles:</strong><br>
+                WASD/Flechas: Moverse | Shift: Correr | Espacio: Saltar<br>
+                Mouse: Rotar Cámara | E: Interactuar | ESC: Pausa | I: Inventario
+            </div>
+            <div id="click-hint">Haz clic para capturar el mouse</div>
+        </div>
+
+        <!-- Panel de Inventario Completo -->
+        <div id="full-inventory">
+            <h2 style="text-align: center; color: #FFD700; margin-top: 0;">📦 Inventario Completo</h2>
+            <p style="text-align: center;">Slots usados: <span id="slots-used">0/50</span></p>
+
+            <div class="inv-category">
+                <h3>🏺 Fragmentos Históricos</h3>
+                <div id="inv-fragments"></div>
+            </div>
+
+            <div class="inv-category">
+                <h3>🎒 Items</h3>
+                <div id="inv-items"></div>
+            </div>
+
+            <div class="inv-category">
+                <h3>⛏️ Recursos</h3>
+                <div id="inv-resources"></div>
+            </div>
+
+            <button onclick="document.getElementById('full-inventory').style.display='none'"
+                style="width: 100%; margin-top: 20px;">Cerrar</button>
+        </div>
+
+        <!-- Cuadro de Confirmación para Reiniciar Progreso -->
+        <div id="reset-confirmation" style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 25;
+        ">
+            <div style="
+                background: linear-gradient(135deg, rgba(139, 0, 0, 0.95), rgba(220, 20, 60, 0.9));
+                padding: 40px;
+                border-radius: 15px;
+                border: 3px solid #FF4444;
+                text-align: center;
+                color: white;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+                max-width: 500px;
+            ">
+                <h2 style="color: #FF4444; margin-bottom: 20px; font-size: 28px;">⚠️ Reiniciar Progreso</h2>
+                <p style="font-size: 18px; margin-bottom: 30px; line-height: 1.5;">
+                    ¿Estás seguro de que quieres reiniciar todo el progreso?<br>
+                    <strong style="color: #FFD700;">Esto borrará todos los fragmentos recolectados y no se puede deshacer.</strong>
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center;">
+                    <button id="btn-reset-confirm" style="
+                        background: #8B0000;
+                        border-color: #FF4444;
+                        padding: 15px 30px;
+                        font-size: 16px;
+                        min-width: 120px;
+                    ">🔄 Sí, Reiniciar</button>
+                    <button id="btn-reset-cancel" style="
+                        background: #666;
+                        border-color: #999;
+                        padding: 15px 30px;
+                        font-size: 16px;
+                        min-width: 120px;
+                    ">🔙 Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuadro de Confirmación para Guardar Progreso -->
+        <div id="save-confirmation" style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 25;
+        ">
+            <div style="
+                background: linear-gradient(135deg, rgba(34, 139, 34, 0.95), rgba(50, 205, 50, 0.9));
+                padding: 40px;
+                border-radius: 15px;
+                border: 3px solid #32CD32;
+                text-align: center;
+                color: white;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+                max-width: 500px;
+            ">
+                <h2 style="color: #32CD32; margin-bottom: 20px; font-size: 28px;">💾 Guardar Progreso</h2>
+                <p style="font-size: 18px; margin-bottom: 30px; line-height: 1.5;">
+                    ¿Deseas guardar tu progreso actual?<br>
+                    <span style="color: #FFD700;">Esto guardará tu posición y todos los fragmentos recolectados.</span>
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center;">
+                    <button id="btn-save-confirm" style="
+                        background: #228B22;
+                        border-color: #32CD32;
+                        padding: 15px 30px;
+                        font-size: 16px;
+                        min-width: 120px;
+                    ">✅ Sí, Guardar</button>
+                    <button id="btn-save-cancel" style="
+                        background: #666;
+                        border-color: #999;
+                        padding: 15px 30px;
+                        font-size: 16px;
+                        min-width: 120px;
+                    ">🔙 Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuadro de Confirmación para Salir al Menú -->
+        <div id="exit-confirmation" style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 25;
+        ">
+            <div style="
+                background: linear-gradient(135deg, rgba(43, 26, 10, 0.95), rgba(139, 69, 19, 0.9));
+                padding: 40px;
+                border-radius: 15px;
+                border: 3px solid #FFD700;
+                text-align: center;
+                color: white;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+                max-width: 500px;
+            ">
+                <h2 style="color: #FFD700; margin-bottom: 20px; font-size: 28px;">🏠 Salir al Menú Principal</h2>
+                <p style="font-size: 18px; margin-bottom: 30px; line-height: 1.5;">
+                    ¿Deseas guardar tu progreso antes de volver al menú principal?
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center;">
+                    <button id="btn-exit-save" style="
+                        background: #228B22;
+                        border-color: #32CD32;
+                        padding: 15px 30px;
+                        font-size: 16px;
+                        min-width: 120px;
+                    ">✅ Sí, Guardar</button>
+                    <button id="btn-exit-no-save" style="
+                        background: #8B0000;
+                        border-color: #FF4444;
+                        padding: 15px 30px;
+                        font-size: 16px;
+                        min-width: 120px;
+                    ">❌ No Guardar</button>
+                    <button id="btn-exit-cancel" style="
+                        background: #666;
+                        border-color: #999;
+                        padding: 15px 30px;
+                        font-size: 16px;
+                        min-width: 120px;
+                    ">🔙 Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Créditos -->
+        <div id="credits-screen">
+            <div id="credits-content">
+                <h1 class="credits-title">Ecos de Chile: Atacama</h1>
+                <p class="credits-subtitle">Experiencia Educativa Interactiva 3D</p>
+
+                <div class="credits-section">
+                    <h3>👩‍💻 Desarrollado por</h3>
+                    <p class="credits-highlight" style="font-size: 24px; text-align: center;">
+                        Jennifer Astudillo
+                    </p>
+                    <p style="text-align: center; color: #AAA;">
+                        Estudiante de Desarrollo de Videojuegos
+                    </p>
+                </div>
+
+                <div class="credits-section">
+                    <h3>🎓 Institución Académica</h3>
+                    <p style="text-align: center; font-size: 18px;">
+                        <span class="credits-highlight">Universidad Tecnológica de Chile INACAP</span><br>
+                        Ingeniería en Informática<br>
+                        Asignatura: Desarrollo de Video Juegos<br>
+                        2025
+                    </p>
+                </div>
+
+                <div class="credits-section">
+                    <h3>🌄 Región de Atacama</h3>
+                    <p>
+                        La Región de Atacama, ubicada en el norte de Chile, es un territorio de contrastes
+                        extraordinarios. Hogar del desierto más árido del mundo, esta región combina paisajes
+                        lunares con playas de aguas turquesas, valles fértiles y montañas nevadas.
+                    </p>
+                    <p>
+                        Su rica historia abarca desde las culturas precolombinas como los Diaguitas, pasando
+                        por el auge minero del siglo XIX con el descubrimiento de la plata en Chañarcillo,
+                        hasta fenómenos naturales únicos como el Desierto Florido.
+                    </p>
+                </div>
+
+                <div class="credits-section">
+                    <h3>⚙️ Tecnologías Utilizadas</h3>
+                    <ul class="credits-list">
+                        <li><span class="credits-highlight">Three.js r160</span> - Motor de renderizado 3D</li>
+                        <li><span class="credits-highlight">JavaScript ES6+</span> - Lenguaje de programación</li>
+                        <li><span class="credits-highlight">WebGL</span> - API de gráficos 3D</li>
+                        <li><span class="credits-highlight">GLTF/GLB & FBX</span> - Formatos de modelos 3D</li>
+                        <li><span class="credits-highlight">Blender & Mixamo</span> - Modelado y animaciones</li>
+                    </ul>
+                </div>
+
+                <div class="credits-section">
+                    <h3>🎨 Referencias Visuales</h3>
+                    <ul class="credits-list">
+                        <li><span class="credits-highlight">The Legend of Zelda: Wind Waker</span> - Estilo cel-shading
+                        </li>
+                        <li><span class="credits-highlight">Museo Chileno de Arte Precolombino</span> - Cultura Diaguita
+                        </li>
+                        <li><span class="credits-highlight">Sketchfab & Poly Pizza</span> - Modelos 3D</li>
+                    </ul>
+                </div>
+
+                <div class="credits-section">
+                    <h3>🙏 Agradecimientos Especiales</h3>
+                    <p><span class="credits-highlight">A la Región de Atacama</span></p>
+                    <p>Por su rica historia y cultura que inspiraron este proyecto.</p>
+
+                    <p style="margin-top: 20px;"><span class="credits-highlight">Al Profesor Marco Antonio
+                            Arévalo</span></p>
+                    <p>Docente de Desarrollo de Videojuegos, por su dedicación, guía y apoyo constante durante el
+                        desarrollo de este proyecto educativo. Su pasión por la enseñanza y compromiso con sus
+                        estudiantes han sido fundamentales para hacer realidad esta experiencia interactiva.</p>
+
+                    <p style="margin-top: 20px;"><span class="credits-highlight">A Three.js y la Comunidad Open
+                            Source</span></p>
+                    <p>Por proporcionar herramientas poderosas y accesibles para crear experiencias 3D en la web.</p>
+                </div>
+
+                <button id="btn-back-menu" style="margin-top: 40px;">🏠 Volver al Menú Principal</button>
+
+                <p style="margin-top: 40px; color: #888; font-size: 14px;">
+                    © 2025 Jennifer Astudillo - Proyecto educativo sin fines comerciales
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { Player } from './js/Player.js';
+        import { CameraController } from './js/CameraController.js';
+        import { InventorySystem } from './js/InventorySystem.js';
+        import { FragmentManager } from './js/FragmentManager.js';
+        import { AssetLoader } from './js/AssetLoader.js';
+        import { AnimationController } from './js/AnimationController.js';
+        import { NPCManager } from './js/NPCManager.js';
+        import { InteractionSystem } from './js/InteractionSystem.js';
+        import { UIManager } from './js/UIManager.js';
+        import { GameStateManager } from './js/GameStateManager.js';
+        import { WorldBuilder } from './js/WorldBuilder.js';
+        import { TerrainDecorationManager } from './js/TerrainDecorationManager.js';
+        import { ZoneManager } from './js/ZoneManager.js';
+        import { AudioManager } from './js/AudioManager.js';
+
+        // ========== CONFIGURACIÓN INICIAL ==========
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB); // Cielo azul claro
+        scene.fog = new THREE.Fog(0xB0E0E6, 50, 150); // Niebla azul suave
+
+        // 🎥 FOV AJUSTADO PARA PERSONAJES ESCALADOS
+        // FOV más amplio (70°) para ver mejor el entorno con cámara alejada
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        document.body.appendChild(renderer.domElement);
+
+        // ========== SISTEMAS DEL JUEGO ==========
+        let assetLoader, inventory, gameState, worldBuilder, ground, audioManager;
+        let player, cameraController, fragmentManager, uiManager, interactionSystem, npcManager, terrainDecoration, zoneManager;
+
+        // Función de inicialización async
+        async function initGame() {
+            assetLoader = new AssetLoader();
+            inventory = new InventorySystem();
+            gameState = new GameStateManager();
+            worldBuilder = new WorldBuilder(scene);
+
+            // Construir el mundo
+            worldBuilder.setupLighting();
+            ground = worldBuilder.createTerrain();
+            worldBuilder.createZones();
+            worldBuilder.addRocks();
+
+            // Crear jugador y cámara
+            player = new Player(scene, assetLoader);
+            cameraController = new CameraController(camera, renderer.domElement);
+
+            // 🔊 INICIALIZAR SISTEMA DE AUDIO
+            audioManager = new AudioManager();
+            await audioManager.loadSoundConfig();
+            audioManager.attachToCamera(camera);
+
+            // Precargar sonidos disponibles
+            await audioManager.preloadAllSounds();
+
+            // Hacer audioManager global para fácil acceso
+            window.audioManager = audioManager;
+
+            console.log('🎵 Sistema de audio inicializado');
+
+            // Crear fragmentos (ahora con modelos GLB)
+            fragmentManager = new FragmentManager(scene, inventory, assetLoader);
+            await fragmentManager.createFragments();
+
+            // UI Manager
+            uiManager = new UIManager(fragmentManager.getFragmentsData());
+
+            // Sistema de interacción
+            interactionSystem = new InteractionSystem(uiManager);
+
+            // NPCs (con modelos GLB y FBX)
+            npcManager = new NPCManager(scene, assetLoader);
+            await npcManager.createNPCs();
+
+            // Decoración del terreno (cactus y flores)
+            terrainDecoration = new TerrainDecorationManager(scene, assetLoader);
+            await terrainDecoration.createDecorations();
+
+            // Zonas temáticas (Copiapó y Bahía Inglesa)
+            zoneManager = new ZoneManager(scene, assetLoader);
+            await zoneManager.createZones();
+
+            // Función global para cerrar diálogo (llamada desde botón)
+            window.closeNPCDialog = () => {
+                // 🔊 SONIDO DE BOTÓN
+                if (audioManager) {
+                    audioManager.play('button_click');
+                }
+                interactionSystem.closeDialog();
+            };
+
+            // 🎬 FUNCIONES GLOBALES PARA MANEJO DE MÚLTIPLES VIDEOS DE YOUTUBE
+
+            // Variable global para el video activo
+            window.currentVideoIndex = 0;
+
+            // Cambiar entre videos en el sistema de pestañas
+            window.switchVideo = (index) => {
+                // 🔊 SONIDO DE BOTÓN
+                if (audioManager) {
+                    audioManager.play('button_click');
+                }
+
+                // Ocultar video actual
+                const currentVideo = document.getElementById(`video-${window.currentVideoIndex}`);
+                const currentTab = document.getElementById(`video-tab-${window.currentVideoIndex}`);
+
+                if (currentVideo) currentVideo.style.display = 'none';
+                if (currentTab) {
+                    currentTab.style.background = 'rgba(100,100,100,0.5)';
+                    currentTab.style.borderColor = '#666';
+                }
+
+                // Mostrar nuevo video
+                const newVideo = document.getElementById(`video-${index}`);
+                const newTab = document.getElementById(`video-tab-${index}`);
+
+                if (newVideo) newVideo.style.display = 'block';
+                if (newTab) {
+                    newTab.style.background = '#d4a017';
+                    newTab.style.borderColor = '#FFD700';
+                }
+
+                window.currentVideoIndex = index;
+            };
+
+            // Abrir todos los videos en YouTube
+            window.openAllVideosInYouTube = () => {
+                const dialog = document.getElementById('npc-dialog');
+                if (!dialog) return;
+
+                const videosData = dialog.getAttribute('data-videos');
+                if (videosData) {
+                    // 🔊 SONIDO DE BOTÓN
+                    if (audioManager) {
+                        audioManager.play('button_click');
+                    }
+
+                    const videos = JSON.parse(videosData);
+
+                    // Confirmar antes de abrir múltiples pestañas
+                    if (videos.length > 1) {
+                        const confirmed = confirm(`¿Deseas abrir ${videos.length} videos en YouTube?\n\nEsto abrirá ${videos.length} pestañas nuevas.`);
+                        if (!confirmed) return;
+                    }
+
+                    // Abrir cada video en una nueva pestaña
+                    videos.forEach((video, index) => {
+                        setTimeout(() => {
+                            window.open(video.url, '_blank');
+                        }, index * 500); // Retraso de 500ms entre cada pestaña
+                    });
+                }
+            };
+
+            // Función legacy para compatibilidad
+            window.toggleVideoFullscreen = () => {
+                window.openAllVideosInYouTube();
+            };
+
+            // Función para crear un reproductor de video flotante (opcional)
+            window.createFloatingVideoPlayer = (embedUrl, title) => {
+                // Remover reproductor existente si existe
+                const existingPlayer = document.getElementById('floating-video-player');
+                if (existingPlayer) {
+                    existingPlayer.remove();
+                }
+
+                // Crear nuevo reproductor flotante
+                const player = document.createElement('div');
+                player.id = 'floating-video-player';
+                player.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    width: 400px;
+                    height: 225px;
+                    background: rgba(0,0,0,0.9);
+                    border: 3px solid #FFD700;
+                    border-radius: 10px;
+                    z-index: 3000;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+                    overflow: hidden;
+                `;
+
+                player.innerHTML = `
+                    <div style="background: #FFD700; color: #000; padding: 8px; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>🎥 ${title}</span>
+                        <button onclick="document.getElementById('floating-video-player').remove()" style="
+                            background: #8B0000; 
+                            color: white; 
+                            border: none; 
+                            padding: 4px 8px; 
+                            border-radius: 4px; 
+                            cursor: pointer;
+                            font-size: 10px;
+                        ">✕</button>
+                    </div>
+                    <iframe 
+                        src="${embedUrl}" 
+                        style="width: 100%; height: calc(100% - 32px); border: none;"
+                        allowfullscreen>
+                    </iframe>
+                `;
+
+                document.body.appendChild(player);
+
+                // Hacer el reproductor arrastrable
+                let isDragging = false;
+                let dragOffset = { x: 0, y: 0 };
+
+                const header = player.querySelector('div');
+                header.style.cursor = 'move';
+
+                header.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    dragOffset.x = e.clientX - player.offsetLeft;
+                    dragOffset.y = e.clientY - player.offsetTop;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        player.style.left = (e.clientX - dragOffset.x) + 'px';
+                        player.style.top = (e.clientY - dragOffset.y) + 'px';
+                        player.style.right = 'auto';
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+            };
+
+            // Cargar modelo del jugador
+            await loadPlayerModel();
+
+            // Verificar si hay partida guardada
+            if (gameState.hasSavedGame()) {
+                document.getElementById('btn-continue').style.display = 'block';
+            }
+
+            // 🎵 INICIAR MÚSICA DEL MENÚ PRINCIPAL
+            // Nota: La música se inicia después de la primera interacción del usuario
+            // debido a las políticas de autoplay de los navegadores
+
+            console.log('✅ Juego inicializado correctamente');
+        }
+
+        // ========== CARGAR MODELO DEL JUGADOR ==========
+        async function loadPlayerModel() {
+            try {
+                console.log('🎮 Cargando modelo del jugador (Adventurer.glb)...');
+
+                // Cargar modelo GLB
+                const playerGLTF = await assetLoader.loadGLTF(
+                    'assets/models/player/Adventurer.glb',
+                    'player'
+                );
+
+                console.log('✅ Modelo GLB cargado, configurando...');
+
+                // Remover el placeholder
+                scene.remove(player.mesh);
+
+                // Configurar el nuevo modelo (extraer scene del GLTF)
+                player.mesh = playerGLTF.scene;
+
+                // 📏 ESCALA AJUSTADA DEL JUGADOR (GLB)
+                // Adventurer.glb necesita escala aumentada
+                // Escala 2.5: Aumentada para que se vea más grande
+                player.mesh.scale.set(2.5, 2.5, 2.5);
+
+                // 🔧 AJUSTE DE POSICIÓN EN EL SUELO
+                // Calcular bounding box para ajustar la posición Y
+                player.mesh.updateMatrixWorld(true);
+                const playerBBox = new THREE.Box3().setFromObject(player.mesh);
+                const playerYOffset = -playerBBox.min.y;
+
+                // 👟 ELEVACIÓN LIGERA: Subir un poco para que se vean los pies
+                const finalYPosition = playerYOffset + 0.3; // +0.3 unidades para elevar ligeramente
+
+                // Posición inicial ligeramente elevada
+                player.mesh.position.set(0, finalYPosition, 0);
+
+                console.log(`  📐 Offset Y del jugador: ${playerYOffset.toFixed(2)} → ${finalYPosition.toFixed(2)} (elevado +0.3)`);
+
+                // Rotación inicial (si el modelo mira en dirección incorrecta)
+                // player.mesh.rotation.y = Math.PI; // Descomentar si mira hacia atrás
+
+                // Aplicar materiales con iluminación mejorada
+                player.mesh.traverse((child) => {
+                    if (child.isMesh) {
+                        console.log('Configurando mesh:', child.name);
+
+                        // Habilitar sombras
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+
+                        // Mejorar el material para que se vea bien
+                        if (child.material) {
+                            // Si tiene textura, mantenerla
+                            if (child.material.map) {
+                                console.log('  - Tiene textura');
+                                child.material.needsUpdate = true;
+                            }
+
+                            // Ajustar propiedades para mejor visibilidad
+                            child.material.side = THREE.DoubleSide; // Ver ambos lados
+
+                            // Si es muy oscuro, agregar emisión
+                            if (child.material.emissive) {
+                                child.material.emissive = new THREE.Color(0x222222);
+                                child.material.emissiveIntensity = 0.2;
+                            }
+
+                            // Ajustar roughness y metalness si existen
+                            if (child.material.roughness !== undefined) {
+                                child.material.roughness = 0.8;
+                            }
+                            if (child.material.metalness !== undefined) {
+                                child.material.metalness = 0.0;
+                            }
+
+                            child.material.needsUpdate = true;
+                        }
+                    }
+                });
+
+                // Agregar a la escena
+                scene.add(player.mesh);
+
+                console.log('✅ Modelo agregado a la escena');
+                console.log('   Escala:', player.mesh.scale);
+                console.log('   Posición:', player.mesh.position);
+
+                // Configurar animaciones si existen
+                if (playerGLTF.animations && playerGLTF.animations.length > 0) {
+                    console.log(`✅ ${playerGLTF.animations.length} animaciones encontradas:`);
+                    playerGLTF.animations.forEach((anim, i) => {
+                        console.log(`   ${i + 1}. ${anim.name} (duración: ${anim.duration.toFixed(2)}s)`);
+                    });
+
+                    const animController = new AnimationController(
+                        player.mesh,
+                        playerGLTF.animations
+                    );
+                    player.setAnimationController(animController);
+
+                    // 🎬 SISTEMA MEJORADO DE DETECCIÓN DE ANIMACIONES
+                    // Excluir animaciones de armas/combate para encontrar idle correcto
+                    const excludeKeywords = ['gun', 'shoot', 'shot', 'fire', 'aim', 'reload', 'weapon', 'attack', 'punch', 'kick'];
+
+                    const findAnimation = (keywords, excludeList = []) => {
+                        return playerGLTF.animations.find(anim => {
+                            const animName = anim.name.toLowerCase();
+
+                            // Excluir animaciones no deseadas
+                            const isExcluded = excludeList.some(exclude =>
+                                animName.includes(exclude.toLowerCase())
+                            );
+                            if (isExcluded) return false;
+
+                            // Buscar por palabras clave
+                            return keywords.some(keyword =>
+                                animName.includes(keyword.toLowerCase())
+                            );
+                        });
+                    };
+
+                    // Detectar animaciones automáticamente (excluyendo combate)
+                    const idleAnim = findAnimation(['idle', 'standing', 'breathe', 'neutral'], excludeKeywords);
+                    const walkAnim = findAnimation(['walk', 'walking'], excludeKeywords);
+                    const runAnim = findAnimation(['run', 'running', 'jog', 'sprint'], excludeKeywords);
+                    const jumpAnim = findAnimation(['jump', 'jumping', 'leap'], excludeKeywords);
+
+                    console.log('🎬 Animaciones detectadas:');
+                    if (idleAnim) console.log(`   ✅ Idle: ${idleAnim.name}`);
+                    if (walkAnim) console.log(`   ✅ Walk: ${walkAnim.name}`);
+                    if (runAnim) console.log(`   ✅ Run: ${runAnim.name}`);
+                    if (jumpAnim) console.log(`   ✅ Jump: ${jumpAnim.name}`);
+
+                    // Iniciar animación idle (con fallback seguro)
+                    if (idleAnim) {
+                        animController.play(idleAnim.name);
+                        console.log('✅ Animación idle iniciada:', idleAnim.name);
+                    } else {
+                        // Buscar la primera animación que NO sea de combate
+                        const safeAnim = playerGLTF.animations.find(anim => {
+                            const name = anim.name.toLowerCase();
+                            return !excludeKeywords.some(exclude => name.includes(exclude));
+                        });
+
+                        if (safeAnim) {
+                            animController.play(safeAnim.name);
+                            console.log('✅ Animación segura iniciada:', safeAnim.name);
+                        } else {
+                            console.warn('⚠️ No se encontró animación idle, usando primera disponible');
+                            animController.play(playerGLTF.animations[0].name);
+                        }
+                    }
+                } else {
+                    console.log('⚠️ No se encontraron animaciones en el modelo');
+                    console.log('💡 El modelo funcionará sin animaciones');
+                }
+
+                console.log('✅ Modelo del jugador cargado exitosamente');
+                console.log('');
+                console.log('🎮 CONTROLES:');
+                console.log('   WASD / Flechas: Moverse');
+                console.log('   Shift: Correr');
+                console.log('   Espacio: Saltar');
+                console.log('   Mouse: Rotar cámara (click primero)');
+                console.log('');
+
+            } catch (error) {
+                console.warn('⚠️ No se pudo cargar el modelo del jugador:', error);
+                console.log('📦 Usando placeholder');
+            }
+        }
+
+        // Iniciar el juego (carga fragmentos y modelo del jugador)
+        initGame();
+
+        // ========== CONTROLES ==========
+        const keys = {
+            w: false, a: false, s: false, d: false,
+            arrowup: false, arrowdown: false, arrowleft: false, arrowright: false,
+            space: false, shift: false, escape: false, i: false
+        };
+
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in keys) keys[key] = true;
+
+            // Pausa con ESC
+            if (key === 'escape' && gameState.isPlaying()) {
+                if (interactionSystem.isInDialog()) {
+                    interactionSystem.closeDialog();
+                } else {
+                    togglePause();
+                }
+            }
+
+            // Inventario con I
+            if (key === 'i' && gameState.isPlaying() && !interactionSystem.isInDialog()) {
+                toggleInventory();
+            }
+
+            // Interacción con E
+            if (key === 'e' && gameState.isPlaying()) {
+                handleInteraction();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in keys) keys[key] = false;
+        });
+
+        // ========== GAME LOOP ==========
+        let lastTime = performance.now();
+        let clickHintShown = true;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const currentTime = performance.now();
+            const delta = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+
+            if (gameState.isPlaying()) {
+                // Ocultar hint de click después de capturar el mouse
+                if (clickHintShown && document.pointerLockElement) {
+                    document.getElementById('click-hint').style.display = 'none';
+                    clickHintShown = false;
+                }
+
+                // Verificar si el jugador puede moverse (no en diálogo)
+                const canMove = !interactionSystem.isInDialog();
+
+                // 🚧 CREAR LISTA DE OBSTÁCULOS PARA COLISIONES
+                const obstacles = [
+                    // NPCs como obstáculos
+                    ...npcManager.npcs,
+                    // Rocas del WorldBuilder
+                    ...(worldBuilder.rocks || []),
+                    // Casas del ZoneManager
+                    ...(zoneManager.houses || [])
+                ];
+
+                // Actualizar jugador con obstáculos
+                player.update(keys, cameraController.getAngle(), delta, ground, canMove, obstacles);
+
+                // Actualizar cámara
+                cameraController.update(player.getPosition(), [ground]);
+
+                // Actualizar NPCs
+                npcManager.update(player.getPosition());
+
+                // Actualizar sistema de interacción
+                const allInteractables = [
+                    ...fragmentManager.fragments,
+                    ...npcManager.npcs,
+                    ...(zoneManager ? zoneManager.getInteractableSigns() : [])
+                ];
+                interactionSystem.update(player.getPosition(), allInteractables);
+
+                // Actualizar fragmentos (solo animaciones, no recolección automática)
+                fragmentManager.update(player.getPosition());
+
+                // Actualizar decoración del terreno (animaciones sutiles)
+                if (terrainDecoration) {
+                    terrainDecoration.update();
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // ========== FUNCIONES DE CONTROL ==========
+        function handleInteraction() {
+            if (interactionSystem.isInDialog()) {
+                // Cerrar diálogo si está abierto
+                interactionSystem.closeDialog();
+                return;
+            }
+
+            const interaction = interactionSystem.tryInteract();
+            if (!interaction) return;
+
+            if (interaction.type === 'fragment') {
+                // Recolectar fragmento
+                fragmentManager.collectFragment(interaction.object, (fragmentData) => {
+                    console.log('🎯 Fragmento recolectado:', fragmentData);
+
+                    uiManager.updateFragmentUI(fragmentData.id, true);
+                    uiManager.updateCounter(fragmentManager.getCollectedCount(), 5);
+                    uiManager.showNotification(fragmentData.name, fragmentData.info);
+
+                    // Actualizar panel de inventario inmediatamente
+                    uiManager.updateInventoryPanel(inventory.getInventoryData());
+                    console.log('📦 Inventario actualizado:', inventory.getInventoryData());
+
+                    // Auto-guardar
+                    autoSave();
+
+                    // Verificar victoria
+                    if (fragmentManager.getCollectedCount() === 5) {
+                        setTimeout(() => {
+                            uiManager.showVictoryMessage();
+                        }, 1000);
+                    }
+                });
+            } else if (interaction.type === 'npc') {
+                // Hablar con NPC
+                interactionSystem.openDialog(interaction.data);
+            } else if (interaction.type === 'info_sign') {
+                // Mostrar información del letrero
+                const signData = {
+                    name: interaction.data.name,
+                    dialog_type: 'Información',
+                    historical_cue: interaction.data.description
+                };
+                interactionSystem.openDialog(signData);
+            }
+        }
+
+        function startNewGame() {
+            gameState.setState('playing');
+            uiManager.showHUD();
+
+            // 🎵 CAMBIAR A MÚSICA Y AMBIENTE DEL JUEGO
+            if (audioManager) {
+                // Cambiar de música de menú a música de juego
+                audioManager.changeMusicWithFade('game_theme', 2.0);
+
+                // Iniciar ambiente del desierto
+                audioManager.play('desert_ambience');
+
+                console.log('🎵 Música de juego y ambiente iniciados');
+            }
+
+            // Cargar inventario guardado si existe (pasar datos de fragmentos para reconstruir)
+            inventory.load(fragmentManager.getFragmentsData());
+
+            // Actualizar UI con fragmentos ya recolectados
+            fragmentManager.getFragmentsData().forEach(frag => {
+                if (inventory.hasFragment(frag.id)) {
+                    uiManager.updateFragmentUI(frag.id, true);
+                }
+            });
+
+            uiManager.updateCounter(fragmentManager.getCollectedCount(), 5);
+
+            // Actualizar panel de inventario con datos cargados
+            uiManager.updateInventoryPanel(inventory.getInventoryData());
+
+            animate();
+        }
+
+        function continueGame() {
+            const savedGame = gameState.loadGame();
+            if (savedGame) {
+                player.loadState(savedGame.player);
+                inventory.load(fragmentManager.getFragmentsData());
+
+                // Actualizar UI
+                fragmentManager.getFragmentsData().forEach(frag => {
+                    if (inventory.hasFragment(frag.id)) {
+                        uiManager.updateFragmentUI(frag.id, true);
+                    }
+                });
+
+                uiManager.updateCounter(fragmentManager.getCollectedCount(), 5);
+
+                // Actualizar panel de inventario con datos cargados
+                uiManager.updateInventoryPanel(inventory.getInventoryData());
+            }
+            startNewGame();
+        }
+
+        function togglePause() {
+            if (gameState.isPlaying()) {
+                gameState.setState('paused');
+                uiManager.showPauseMenu();
+                document.exitPointerLock();
+            } else if (gameState.isPaused()) {
+                gameState.setState('playing');
+                uiManager.hidePauseMenu();
+            }
+        }
+
+        function toggleInventory() {
+            const invPanel = document.getElementById('full-inventory');
+            if (invPanel.style.display === 'none' || !invPanel.style.display) {
+                invPanel.style.display = 'block';
+                uiManager.updateInventoryPanel(inventory.getInventoryData());
+                document.exitPointerLock();
+            } else {
+                invPanel.style.display = 'none';
+            }
+        }
+
+        function autoSave() {
+            gameState.saveGame(player.saveState(), inventory.getInventoryData());
+        }
+
+        function exitToMenu() {
+            gameState.setState('menu');
+            uiManager.showMainMenu();
+            document.exitPointerLock();
+
+            // Resetear posición del jugador
+            player.setPosition(0, 2, 0);
+        }
+
+        // ========== EVENT LISTENERS ==========
+        document.getElementById('btn-start').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // 🎵 INICIAR MÚSICA DEL MENÚ (primera interacción del usuario)
+            if (audioManager && !audioManager.currentMusic) {
+                audioManager.play('main_theme');
+                console.log('🎵 Música del menú iniciada');
+            }
+            startNewGame();
+        });
+
+        document.getElementById('btn-continue').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+            continueGame();
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Mostrar cuadro de confirmación personalizado
+            document.getElementById('reset-confirmation').style.display = 'flex';
+        });
+
+        document.getElementById('btn-credits').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('credits-screen').style.display = 'block';
+        });
+
+        document.getElementById('btn-back-menu').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+            document.getElementById('credits-screen').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+        });
+
+        document.getElementById('btn-resume').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+            togglePause();
+        });
+
+        document.getElementById('btn-inventory-full').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+            toggleInventory();
+        });
+
+        document.getElementById('btn-save').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Mostrar cuadro de confirmación personalizado
+            document.getElementById('save-confirmation').style.display = 'flex';
+        });
+
+        document.getElementById('btn-main-menu').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Mostrar cuadro de confirmación personalizado
+            document.getElementById('exit-confirmation').style.display = 'flex';
+        });
+
+        // ========== CUADROS DE CONFIRMACIÓN ==========
+        
+        // Cuadro de Reiniciar Progreso
+        document.getElementById('btn-reset-confirm').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Limpiar todo el progreso
+            localStorage.clear();
+            inventory.clear();
+            gameState.clearSave();
+
+            // Resetear fragmentos en el mundo
+            fragmentManager.fragments.forEach(fragment => {
+                fragment.visible = true;
+                fragment.userData.collected = false;
+            });
+
+            // Actualizar UI
+            fragmentManager.getFragmentsData().forEach(frag => {
+                uiManager.updateFragmentUI(frag.id, false);
+            });
+            uiManager.updateCounter(0, 5);
+
+            // Ocultar botón de continuar
+            document.getElementById('btn-continue').style.display = 'none';
+
+            // Ocultar cuadro y mostrar mensaje de éxito
+            document.getElementById('reset-confirmation').style.display = 'none';
+            
+            // Mostrar notificación de éxito en el juego
+            setTimeout(() => {
+                uiManager.showNotification('Progreso Reiniciado', '✅ Todos los fragmentos están disponibles de nuevo.');
+            }, 500);
+        });
+
+        document.getElementById('btn-reset-cancel').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Solo ocultar el cuadro
+            document.getElementById('reset-confirmation').style.display = 'none';
+        });
+
+        // Cuadro de Guardar Progreso
+        document.getElementById('btn-save-confirm').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Guardar progreso
+            autoSave();
+
+            // Ocultar cuadro
+            document.getElementById('save-confirmation').style.display = 'none';
+            
+            // Mostrar notificación de éxito en el juego
+            setTimeout(() => {
+                uiManager.showNotification('Progreso Guardado', '✅ Tu progreso ha sido guardado exitosamente.');
+            }, 500);
+        });
+
+        document.getElementById('btn-save-cancel').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Solo ocultar el cuadro
+            document.getElementById('save-confirmation').style.display = 'none';
+        });
+
+        // ========== CUADRO DE CONFIRMACIÓN PARA SALIR ==========
+        document.getElementById('btn-exit-save').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Guardar progreso
+            autoSave();
+            
+            // 🎵 VOLVER A MÚSICA DEL MENÚ
+            if (audioManager) {
+                audioManager.stopAmbient(); // Detener ambiente del desierto
+                audioManager.changeMusicWithFade('main_theme', 2.0); // Volver a música del menú
+                console.log('🎵 Volviendo a música del menú');
+            }
+            
+            // Ocultar cuadro y salir al menú
+            document.getElementById('exit-confirmation').style.display = 'none';
+            exitToMenu();
+        });
+
+        document.getElementById('btn-exit-no-save').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // 🎵 VOLVER A MÚSICA DEL MENÚ
+            if (audioManager) {
+                audioManager.stopAmbient(); // Detener ambiente del desierto
+                audioManager.changeMusicWithFade('main_theme', 2.0); // Volver a música del menú
+                console.log('🎵 Volviendo a música del menú');
+            }
+            
+            // Ocultar cuadro y salir al menú sin guardar
+            document.getElementById('exit-confirmation').style.display = 'none';
+            exitToMenu();
+        });
+
+        document.getElementById('btn-exit-cancel').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN
+            if (audioManager) {
+                audioManager.play('button_click');
+            }
+
+            // Solo ocultar el cuadro y continuar jugando
+            document.getElementById('exit-confirmation').style.display = 'none';
+        });
+
+        // ========== CONTROLES DE AUDIO ==========
+        document.getElementById('master-volume').addEventListener('input', (e) => {
+            if (audioManager) {
+                const vol = e.target.value / 100;
+                audioManager.setMasterVolume(vol);
+                document.getElementById('master-vol').textContent = e.target.value;
+            }
+        });
+
+        document.getElementById('music-volume').addEventListener('input', (e) => {
+            if (audioManager) {
+                const vol = e.target.value / 100;
+                audioManager.setMusicVolume(vol);
+                document.getElementById('music-vol').textContent = e.target.value;
+            }
+        });
+
+        document.getElementById('ambient-volume').addEventListener('input', (e) => {
+            if (audioManager) {
+                const vol = e.target.value / 100;
+                audioManager.setAmbientVolume(vol);
+                document.getElementById('ambient-vol').textContent = e.target.value;
+            }
+        });
+
+        document.getElementById('sfx-volume').addEventListener('input', (e) => {
+            if (audioManager) {
+                const vol = e.target.value / 100;
+                audioManager.setSFXVolume(vol);
+                document.getElementById('sfx-vol').textContent = e.target.value;
+            }
+        });
+
+        document.getElementById('btn-mute').addEventListener('click', () => {
+            // 🔊 SONIDO DE BOTÓN (antes de mutear)
+            if (audioManager && !audioManager.isMuted) {
+                audioManager.play('button_click');
+            }
+
+            if (audioManager) {
+                const isMuted = audioManager.toggleMute();
+                document.getElementById('btn-mute').textContent = isMuted ? '🔊 Activar' : '🔇 Mutear';
+            }
+        });
+
+        // Redimensionamiento
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Iniciar el loop de renderizado
+        animate();
+    </script>
+</body>
+
+</html>

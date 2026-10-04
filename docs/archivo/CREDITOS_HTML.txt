@@ -1,0 +1,125 @@
+<!-- Pantalla de Créditos -->
+<div id="credits-screen">
+    <div id="credits-content">
+        <h1 class="credits-title">Ecos de Chile: Atacama</h1>
+        <p class="credits-subtitle">Experiencia Educativa Interactiva 3D</p>
+
+        <!-- Desarrolladora -->
+        <div class="credits-section">
+            <h3>👩‍💻 Desarrollado por</h3>
+            <p class="credits-highlight" style="font-size: 24px; text-align: center;">
+                Jennifer Astudillo
+            </p>
+            <p style="text-align: center; color: #AAA;">
+                Estudiante de Desarrollo de Videojuegos<br>
+                Evaluación 3 - Prototipo Educativo
+            </p>
+        </div>
+
+        <!-- Institución -->
+        <div class="credits-section">
+            <h3>🎓 Institución Académica</h3>
+            <p style="text-align: center; font-size: 18px;">
+                <span class="credits-highlight">[Nombre de la Institución]</span><br>
+                Carrera de Desarrollo de Videojuegos<br>
+                2024
+            </p>
+        </div>
+
+        <!-- Sobre la Región -->
+        <div class="credits-section">
+            <h3>🌄 Región de Atacama</h3>
+            <p>
+                La Región de Atacama, ubicada en el norte de Chile, es un territorio de contrastes 
+                extraordinarios. Hogar del desierto más árido del mundo, esta región combina paisajes 
+                lunares con playas de aguas turquesas, valles fértiles y montañas nevadas.
+            </p>
+            <p>
+                Su rica historia abarca desde las culturas precolombinas como los Diaguitas, pasando 
+                por el auge minero del siglo XIX con el descubrimiento de la plata en Chañarcillo, 
+                hasta fenómenos naturales únicos como el Desierto Florido, donde miles de flores 
+                transforman el paisaje árido en un mar de colores.
+            </p>
+            <p>
+                Este proyecto busca preservar y difundir el patrimonio cultural e histórico de Atacama 
+                a través de una experiencia interactiva que permite a los jugadores explorar y aprender 
+                sobre los hitos más importantes de esta fascinante región.
+            </p>
+        </div>
+
+        <!-- Tecnologías -->
+        <div class="credits-section">
+            <h3>⚙️ Tecnologías Utilizadas</h3>
+            <ul class="credits-list">
+                <li><span class="credits-highlight">Three.js r160</span> - Motor de renderizado 3D</li>
+                <li><span class="credits-highlight">JavaScript ES6+</span> - Lenguaje de programación</li>
+                <li><span class="credits-highlight">WebGL</span> - API de gráficos 3D</li>
+                <li><span class="credits-highlight">HTML5 & CSS3</span> - Estructura y estilos</li>
+                <li><span class="credits-highlight">GLTF/GLB & FBX</span> - Formatos de modelos 3D</li>
+                <li><span class="credits-highlight">Blender</span> - Modelado y preparación de assets</li>
+                <li><span class="credits-highlight">Mixamo</span> - Animaciones de personajes</li>
+            </ul>
+        </div>
+
+        <!-- Referencias Visuales -->
+        <div class="credits-section">
+            <h3>🎨 Referencias Visuales</h3>
+            <ul class="credits-list">
+                <li><span class="credits-highlight">The Legend of Zelda: Wind Waker</span> - Estilo cel-shading</li>
+                <li><span class="credits-highlight">Museo Chileno de Arte Precolombino</span> - Cultura Diaguita</li>
+                <li><span class="credits-highlight">Memoria Chilena</span> - Contenido histórico</li>
+                <li><span class="credits-highlight">Sketchfab</span> - Modelos 3D de referencia</li>
+                <li><span class="credits-highlight">Poly Pizza</span> - Assets low-poly</li>
+            </ul>
+        </div>
+
+        <!-- Agradecimientos -->
+        <div class="credits-section">
+            <h3>🙏 Agradecimientos Especiales</h3>
+            <p><span class="credits-highlight">A la Región de Atacama</span></p>
+            <p>
+                Por su rica historia, cultura y paisajes que inspiraron este proyecto. 
+                Por ser un territorio único que merece ser conocido y valorado por las nuevas generaciones.
+            </p>
+            
+            <p style="margin-top: 20px;"><span class="credits-highlight">A los Profesores</span></p>
+            <p>
+                Por su guía, conocimientos y apoyo durante el desarrollo de este proyecto educativo.
+                Por fomentar la creatividad y el aprendizaje a través de la tecnología.
+            </p>
+            
+            <p style="margin-top: 20px;"><span class="credits-highlight">A Three.js y la Comunidad Open Source</span></p>
+            <p>
+                Por proporcionar herramientas poderosas y accesibles que permiten crear experiencias 
+                3D interactivas en la web. Por mantener documentación excelente y ejemplos inspiradores.
+            </p>
+            
+            <p style="margin-top: 20px;"><span class="credits-highlight">A los Jugadores</span></p>
+            <p>
+                Gracias por explorar la historia de Atacama a través de este juego. 
+                Esperamos que esta experiencia haya despertado tu curiosidad por conocer más 
+                sobre esta maravillosa región de Chile.
+            </p>
+        </div>
+
+        <!-- Información del Proyecto -->
+        <div class="credits-section">
+            <h3>📋 Información del Proyecto</h3>
+            <p style="text-align: center;">
+                <strong>Tipo:</strong> Prototipo Educativo Interactivo<br>
+                <strong>Género:</strong> Aventura / Educativo<br>
+                <strong>Plataforma:</strong> Web (Navegadores modernos)<br>
+                <strong>Año:</strong> 2024<br>
+                <strong>Versión:</strong> 1.0 - Evaluación 3
+            </p>
+        </div>
+
+        <!-- Botón Volver -->
+        <button id="btn-back-menu">🏠 Volver al Menú Principal</button>
+
+        <p style="margin-top: 40px; color: #888; font-size: 14px;">
+            © 2024 Jennifer Astudillo - Todos los derechos reservados<br>
+            Proyecto educativo sin fines comerciales
+        </p>
+    </div>
+</div>

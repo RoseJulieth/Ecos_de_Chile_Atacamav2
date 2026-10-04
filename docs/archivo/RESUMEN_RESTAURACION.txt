@@ -1,0 +1,141 @@
+═══════════════════════════════════════════════════════════════
+  ✅ CONFIGURACIÓN RESTAURADA AL CHECKPOINT FUNCIONAL
+═══════════════════════════════════════════════════════════════
+
+PROBLEMA:
+Los modelos no se veían después de cambiar las escalas a 1.0
+ñ.
+SOLUCIÓN:
+Restauré la configuración correcta del checkpoint anterior (TASK 11)
+
+═══════════════════════════════════════════════════════════════
+  CAMBIOS APLICADOS
+═══════════════════════════════════════════════════════════════
+
+1. ESCALAS RESTAURADAS:
+   - Jugador:  1.0 → 0.01 ✅
+   - NPCs:     1.0 → 0.01 ✅
+
+2. POSICIONES RESTAURADAS:
+   - NPCs: Y=1 → Y=0 ✅
+
+3. ELEMENTOS REMOVIDOS:
+   - Esferas de debug (verde y rojas) ✅
+   - Logs excesivos en consola ✅
+
+═══════════════════════════════════════════════════════════════
+  ARCHIVOS MODIFICADOS
+═══════════════════════════════════════════════════════════════
+
+1. js/NPCManager.js
+   - Escala: 0.01
+   - Posición Y: 0
+   - Sin esferas de debug
+   - Logs simplificados
+
+2. index.html
+   - Escala jugador: 0.01
+   - Sin esfera de debug
+
+═══════════════════════════════════════════════════════════════
+  PARA VER LOS CAMBIOS
+═══════════════════════════════════════════════════════════════
+
+1. RECARGA EL NAVEGADOR
+   → Presiona Ctrl + F5 (recarga forzada)
+
+2. ABRE LA CONSOLA
+   → Presiona F12
+
+3. INICIA EL JUEGO
+   → Click en "Comenzar Exploración"
+
+4. VERIFICA
+   → Jugador visible (sin esfera verde)
+   → NPCs visibles con iconos flotantes
+   → Puedes interactuar con E
+
+═══════════════════════════════════════════════════════════════
+  QUÉ DEBERÍAS VER
+═══════════════════════════════════════════════════════════════
+
+✅ Cielo azul (0x87CEEB)
+✅ Jugador visible con modelo FBX
+✅ NPCs visibles con modelos GLB
+✅ Iconos flotantes sobre NPCs (📜, ✨, 🗺️, 🌄)
+✅ Fragmentos visibles con glow
+✅ Tamaños proporcionales y realistas
+
+═══════════════════════════════════════════════════════════════
+  CONSOLA (F12)
+═══════════════════════════════════════════════════════════════
+
+Deberías ver logs limpios:
+
+🎮 Cargando modelo del jugador (FBX)...
+✅ Modelo FBX cargado, configurando...
+✅ Modelo agregado a la escena
+   Escala: {x: 0.01, y: 0.01, z: 0.01}
+
+👥 Creando NPCs con modelos GLB...
+⏳ Cargando NPC: assets/models/npcs/Character.glb
+✅ Modelo NPC cargado: Don Pedro - Minero Veterano
+⏳ Cargando NPC: assets/models/npcs/Animated_Woman.glb
+✅ Modelo NPC cargado: Doña Rosa - Guardiana de Leyendas
+[... 8 NPCs más ...]
+✅ 10 NPCs creados en el mundo
+
+═══════════════════════════════════════════════════════════════
+  CONTROLES
+═══════════════════════════════════════════════════════════════
+
+WASD o Flechas → Moverse
+Shift          → Correr
+Espacio        → Saltar
+Mouse          → Rotar cámara (click primero)
+E              → Interactuar con NPC/Fragmento
+ESC            → Pausa
+I              → Inventario
+
+═══════════════════════════════════════════════════════════════
+  NPCs MÁS CERCANOS
+═══════════════════════════════════════════════════════════════
+
+1. Profesora Carla    → (-5, -5)   [7 unidades]
+2. Don Pedro          → (-10, 5)   [11 unidades]
+3. Doña Rosa          → (8, -8)    [11 unidades]
+4. Abuelo Tomás       → (5, 12)    [13 unidades]
+
+Camina en esas direcciones para encontrarlos.
+
+═══════════════════════════════════════════════════════════════
+  ¿POR QUÉ ESCALA 0.01?
+═══════════════════════════════════════════════════════════════
+
+Los modelos de Mixamo vienen en escala grande:
+- Tamaño original: ~180 unidades (180cm)
+- Tamaño deseado:  1.8 unidades (1.8m)
+- Cálculo: 1.8 / 180 = 0.01
+
+Con escala 0.01:
+- Jugador: ~1.8m de altura (realista)
+- NPCs: ~1.7-1.8m de altura (realista)
+- Proporciones correctas con el terreno
+
+═══════════════════════════════════════════════════════════════
+  SERVIDOR
+═══════════════════════════════════════════════════════════════
+
+✅ Servidor activo en: http://localhost:8000
+
+═══════════════════════════════════════════════════════════════
+  DOCUMENTACIÓN
+═══════════════════════════════════════════════════════════════
+
+- RESTAURACION_CONFIGURACION.md → Detalles completos
+- ESCALAS_Y_CONFIGURACION_FINAL.md → Configuración original
+- RESUMEN_RESTAURACION.txt → Este archivo
+
+═══════════════════════════════════════════════════════════════
+
+¡RECARGA CON CTRL + F5 PARA VER LA CONFIGURACIÓN RESTAURADA!

@@ -1,0 +1,324 @@
+import * as THREE from 'three';
+
+// ============================================================
+// CONFIGURACIÓN DE ESCALA GLOBAL
+// ============================================================
+// Estándar Three.js: 1 unidad = 1 metro
+// Altura humana promedio: 1.7 metros
+// Terreno: 200x200 unidades (200m x 200m)
+// 
+// ESCALAS OBJETIVO:
+// - Jugador FBX (Mixamo): 0.1 → altura final ~1.7 unidades
+// - NPCs GLB: 2.5 → altura final ~1.6-1.8 unidades
+// - NPCs FBX: 0.12 → altura final ~1.7 unidades
+// ============================================================
+
+export class Player {
+    constructor(scene, assetLoader = null) {
+        this.scene = scene;
+        this.assetLoader = assetLoader;
+        this.velocity = new THREE.Vector3(0, 0, 0);
+
+        // ⚙️ VELOCIDADES AJUSTADAS PARA MOVIMIENTO NATURAL
+        // Velocidades reducidas para movimiento más realista
+        this.speed = 0.15;              // Velocidad de caminar (antes: 0.4 - muy rápido)
+        this.sprintMultiplier = 2.0;    // Multiplicador para correr (0.15 * 2 = 0.3)
+        this.jumpForce = 1.5;           // Fuerza de salto (antes: 0.30)
+        this.isGrounded = false;
+        this.canJump = true;
+        this.isMoving = false;
+        this.isSprinting = false;
+        this.isJumping = false;
+
+        // Animación
+        this.animationController = null;
+        this.currentAnimation = 'idle';
+
+        // 🔊 SISTEMA DE SONIDOS DE PASOS
+        this.footstepTimer = 0;
+        this.footstepInterval = 0.5; // Intervalo entre pasos (segundos)
+        this.lastMovingState = false;
+
+        // Crear mesh del jugador (placeholder o modelo cargado)
+        this.createPlayerMesh();
+
+        // ⚙️ RAYCASTER AJUSTADO A NUEVA ALTURA
+        // Con altura ~1.7 unidades, necesitamos detectar suelo hasta ~2.5 unidades
+        this.raycaster = new THREE.Raycaster();
+        this.raycaster.far = 3.0;  // Antes: 1.5
+    }
+
+    createPlayerMesh() {
+        // ============================================================
+        // 📏 CREACIÓN DEL MESH DEL JUGADOR CON ESCALA NORMALIZADA
+        // ============================================================
+        // Estándar: 1 unidad = 1 metro
+        // Altura objetivo: 1.7 unidades (altura humana promedio)
+        // ============================================================
+
+        if (this.assetLoader) {
+            // Intentar cargar modelo GLTF
+            this.mesh = this.assetLoader.createPlaceholder('player');
+        } else {
+            // 📏 PLACEHOLDER CON PROPORCIONES HUMANAS REALISTAS
+            // CapsuleGeometry(radio, altura_cilindro, segmentos_radiales, segmentos_altura)
+            // Altura total = radio_superior + altura_cilindro + radio_inferior
+            // Altura total = 0.3 + 1.1 + 0.3 = 1.7 unidades ✅
+            const radius = 0.3;        // Radio de la cápsula (ancho de hombros)
+            const height = 1.1;        // Altura del cilindro central
+            const geometry = new THREE.CapsuleGeometry(radius, height, 4, 8);
+            const material = new THREE.MeshToonMaterial({ color: 0x00ff88 });
+            this.mesh = new THREE.Mesh(geometry, material);
+
+            console.log(`📏 Placeholder del jugador creado:`);
+            console.log(`   Altura total: ${radius + height + radius} unidades (1.7m)`);
+            console.log(`   Radio: ${radius} unidades (0.3m)`);
+        }
+
+        this.mesh.castShadow = true;
+        this.mesh.position.set(0, 0, 0);  // Posición inicial en el suelo
+
+        // ⚠️ IMPORTANTE: No aplicar escala adicional al placeholder
+        // La geometría ya está en el tamaño correcto (1.7 unidades)
+        // Si se carga un modelo FBX/GLB, la escala se aplica en index.html
+
+        this.scene.add(this.mesh);
+    }
+
+    setAnimationController(controller) {
+        this.animationController = controller;
+    }
+
+    update(keys, cameraAngle, delta, ground, canMove = true, obstacles = []) {
+        // Movimiento horizontal
+        const direction = new THREE.Vector3();
+        this.isSprinting = keys.shift;
+        const currentSpeed = this.speed * (this.isSprinting ? this.sprintMultiplier : 1);
+
+        // Controles duales: WASD y Flechas
+        if (keys.w || keys.arrowup) direction.z -= 1;
+        if (keys.s || keys.arrowdown) direction.z += 1;
+        if (keys.a || keys.arrowleft) direction.x -= 1;
+        if (keys.d || keys.arrowright) direction.x += 1;
+
+        this.isMoving = direction.length() > 0;
+
+        if (this.isMoving && canMove) {
+            direction.normalize();
+            direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
+
+            // 🔧 SISTEMA DE COLISIONES
+            // Guardar posición actual
+            const oldPosition = this.mesh.position.clone();
+
+            // Calcular nueva posición
+            const newX = this.mesh.position.x + direction.x * currentSpeed;
+            const newZ = this.mesh.position.z + direction.z * currentSpeed;
+
+            // 🗺️ LÍMITES DEL MAPA (terreno 200x200, centrado en 0,0)
+            const mapLimit = 95; // Límite un poco menor que 100 para dar margen
+            const clampedX = Math.max(-mapLimit, Math.min(mapLimit, newX));
+            const clampedZ = Math.max(-mapLimit, Math.min(mapLimit, newZ));
+
+            // Aplicar movimiento con límites
+            this.mesh.position.x = clampedX;
+            this.mesh.position.z = clampedZ;
+
+            // 🚧 DETECCIÓN DE COLISIONES CON OBJETOS
+            if (obstacles.length > 0) {
+                const playerRadius = 1.5; // Radio de colisión del jugador
+                let collision = false;
+
+                for (const obstacle of obstacles) {
+                    if (!obstacle.visible) continue; // Ignorar objetos invisibles
+
+                    const distance = this.mesh.position.distanceTo(obstacle.position);
+
+                    // Determinar radio del obstáculo según su tipo
+                    let obstacleRadius = 2.0; // Radio por defecto
+
+                    if (obstacle.userData && obstacle.userData.type) {
+                        switch (obstacle.userData.type) {
+                            case 'rock':
+                                obstacleRadius = 3.0;
+                                break;
+                            case 'house':
+                                obstacleRadius = 8.0; // Casas grandes
+                                break;
+                            case 'npc':
+                                obstacleRadius = 1.0; // NPCs más pequeños
+                                break;
+                            case 'tree':
+                                obstacleRadius = 2.5;
+                                break;
+                            default:
+                                obstacleRadius = 2.0;
+                        }
+                    }
+
+                    // Verificar colisión
+                    if (distance < (playerRadius + obstacleRadius)) {
+                        collision = true;
+                        break;
+                    }
+                }
+
+                // Si hay colisión, revertir movimiento
+                if (collision) {
+                    this.mesh.position.copy(oldPosition);
+                }
+            }
+
+            // Rotación suave hacia la dirección del movimiento (solo si se movió)
+            if (!this.mesh.position.equals(oldPosition)) {
+                const targetRotation = Math.atan2(direction.x, direction.z);
+                const currentRotation = this.mesh.rotation.y;
+                const rotationDiff = targetRotation - currentRotation;
+
+                // Normalizar diferencia de ángulo
+                let normalizedDiff = rotationDiff;
+                while (normalizedDiff > Math.PI) normalizedDiff -= Math.PI * 2;
+                while (normalizedDiff < -Math.PI) normalizedDiff += Math.PI * 2;
+
+                // Interpolación suave
+                this.mesh.rotation.y += normalizedDiff * 0.15;
+            }
+        }
+
+        // 🔊 SISTEMA DE SONIDOS DE PASOS
+        this.updateFootstepSounds(delta);
+
+        // ⚙️ DETECCIÓN DE SUELO AJUSTADA A NUEVA ESCALA
+        this.raycaster.set(
+            new THREE.Vector3(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z),
+            new THREE.Vector3(0, -1, 0)
+        );
+
+        const intersects = this.raycaster.intersectObject(ground);
+        this.isGrounded = intersects.length > 0 && intersects[0].distance < 3.5;  // Antes: 2.0
+
+        // Salto (solo con barra espaciadora)
+        if (keys.space && this.isGrounded && this.canJump && canMove) {
+            this.velocity.y = this.jumpForce;
+            this.canJump = false;
+            this.isJumping = true;
+        }
+
+        if (!keys.space) {
+            this.canJump = true;
+        }
+
+        if (this.isGrounded && this.isJumping) {
+            this.isJumping = false;
+        }
+
+        // Aplicar gravedad
+        if (!this.isGrounded) {
+            this.velocity.y -= 9.8 * delta;
+        } else {
+            if (this.velocity.y < 0) this.velocity.y = 0;
+        }
+
+        this.mesh.position.y += this.velocity.y;
+
+        // Limitar caída (nivel del suelo) - a ras de suelo
+        if (this.mesh.position.y < 0) {
+            this.mesh.position.y = 0;
+            this.velocity.y = 0;
+            this.isGrounded = true;
+        }
+
+        // Actualizar animaciones
+        this.updateAnimation(delta);
+    }
+
+    updateAnimation(delta) {
+        if (!this.animationController) return;
+
+        let targetAnimation = 'idle';
+        let animationSpeed = 1.0;
+
+        // Determinar animación según estado
+        if (this.isJumping || !this.isGrounded) {
+            targetAnimation = 'jump';
+            animationSpeed = 1.0;
+        } else if (this.isMoving) {
+            if (this.isSprinting) {
+                targetAnimation = 'run';
+                animationSpeed = 1.0;  // Velocidad normal para correr
+            } else {
+                targetAnimation = 'walk';
+                animationSpeed = 1.0;  // Velocidad normal para caminar
+            }
+        }
+
+        // Cambiar animación si es diferente
+        if (targetAnimation !== this.currentAnimation) {
+            this.currentAnimation = targetAnimation;
+
+            // Intentar reproducir la animación con velocidad ajustada
+            const success = this.animationController.playByKeyword(targetAnimation, {
+                timeScale: animationSpeed
+            });
+
+            if (!success) {
+                console.warn(`⚠️ Animación no encontrada: ${targetAnimation}`);
+            }
+        }
+
+        this.animationController.update(delta);
+    }
+
+    getPosition() {
+        return this.mesh.position.clone();
+    }
+
+    setPosition(x, y, z) {
+        this.mesh.position.set(x, y, z);
+    }
+
+    saveState() {
+        return {
+            x: this.mesh.position.x,
+            y: this.mesh.position.y,
+            z: this.mesh.position.z
+        };
+    }
+
+    loadState(state) {
+        if (state) {
+            this.setPosition(state.x, state.y, state.z);
+        }
+    }
+
+    // 🔊 SISTEMA DE SONIDOS DE PASOS
+    updateFootstepSounds(delta) {
+        // Solo reproducir sonidos si el jugador se está moviendo y está en el suelo
+        if (this.isMoving && this.isGrounded) {
+            // Actualizar timer
+            this.footstepTimer += delta;
+
+            // Ajustar intervalo según velocidad (correr = pasos más rápidos)
+            const currentInterval = this.isSprinting ? this.footstepInterval * 0.7 : this.footstepInterval;
+
+            // Reproducir sonido de paso
+            if (this.footstepTimer >= currentInterval) {
+                this.playFootstepSound();
+                this.footstepTimer = 0; // Resetear timer
+            }
+        } else {
+            // Resetear timer cuando no se mueve
+            this.footstepTimer = 0;
+        }
+
+        // Actualizar estado anterior
+        this.lastMovingState = this.isMoving;
+    }
+
+    playFootstepSound() {
+        // Reproducir sonido de pasos si el AudioManager está disponible
+        if (window.audioManager) {
+            window.audioManager.play('footstep_sand');
+        }
+    }
+}

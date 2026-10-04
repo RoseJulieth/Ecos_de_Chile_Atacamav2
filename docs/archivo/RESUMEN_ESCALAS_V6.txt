@@ -1,0 +1,40 @@
+🎮 AJUSTE DE ESCALAS - VERSIÓN 6
+=================================
+
+✅ ESCALAS AJUSTADAS:
+
+JUGADOR:
+- Escala: 1.2
+- 20% más grande que NPCs
+- Destaca visualmente
+
+NPCs GLB:
+- Escala: 1.0
+- Tamaño normal
+- Proporciones adecuadas
+
+NPC FBX (Javier):
+- Escala: 0.01
+- Equivalente a 1.0 GLB
+
+INDICADORES:
+- Posición: Y = 20
+- Animación: Y = 20 ± 0.5
+- Etiquetas: Y = 25
+
+=================================
+SERVIDOR: http://localhost:8000
+=================================
+
+RECARGA LA PÁGINA (F5)
+
+VERIFICA:
+1. Jugador más grande que NPCs
+2. NPCs tamaño adecuado
+3. Indicadores visibles
+4. Sin flotación
+5. Proporciones naturales
+
+=================================
+Estado: ✅ LISTO
+=================================

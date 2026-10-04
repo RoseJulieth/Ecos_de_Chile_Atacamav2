@@ -1,0 +1,79 @@
+═══════════════════════════════════════════════════════════════
+  🎬 FIX: ANIMACIÓN GUN_SHOT - RESUMEN RÁPIDO
+═══════════════════════════════════════════════════════════════
+
+🐛 PROBLEMA:
+   Jugador con animación "gun_shot" constante (apuntando pistola)
+
+✅ SOLUCIÓN:
+   Sistema de exclusión de animaciones de combate/armas
+
+═══════════════════════════════════════════════════════════════
+  CAMBIOS APLICADOS
+═══════════════════════════════════════════════════════════════
+
+📝 LISTA DE EXCLUSIÓN (index.html + AnimationController.js)
+   Palabras clave excluidas:
+   - gun, shoot, shot, fire, aim, reload
+   - weapon, attack, punch, kick, sword, rifle
+
+🎯 DETECCIÓN MEJORADA (index.html línea ~665)
+   ANTES: Encontraba cualquier animación con "idle"
+   AHORA: Excluye "gun_idle", "weapon_idle", etc. ✅
+
+🔄 FALLBACK SEGURO (index.html línea ~690)
+   Si no hay "idle", busca primera animación SIN combate ✅
+
+🎮 ANIMATIONCONTROLLER (js/AnimationController.js línea ~65)
+   playByKeyword() ahora filtra animaciones de combate ✅
+
+═══════════════════════════════════════════════════════════════
+  RESULTADO ESPERADO
+═══════════════════════════════════════════════════════════════
+
+Estado: Quieto    → Animación: idle ✅ (parado normal)
+Estado: Caminando → Animación: walk ✅ (sin armas)
+Estado: Corriendo → Animación: run ✅ (sin armas)
+Estado: Saltando  → Animación: jump ✅ (sin armas)
+
+❌ NO MÁS: gun_shot, gun_idle, gun_walk, gun_run
+
+═══════════════════════════════════════════════════════════════
+  CÓMO PROBAR
+═══════════════════════════════════════════════════════════════
+
+1. Recarga el navegador (F5)
+2. El jugador debe estar PARADO NORMALMENTE (no apuntando)
+3. Camina (WASD) - debe caminar sin armas
+4. Corre (Shift) - debe correr sin armas
+5. Salta (Espacio) - debe saltar sin armas
+
+═══════════════════════════════════════════════════════════════
+  VERIFICACIÓN EN CONSOLA
+═══════════════════════════════════════════════════════════════
+
+Busca estos mensajes:
+
+✅ Animación idle iniciada: idle
+   (NO "gun_idle" o "gun_shot")
+
+🎬 Usando animación: walk para "walk"
+   (NO "gun_walk")
+
+🎬 Usando animación: run para "run"
+   (NO "gun_run")
+
+═══════════════════════════════════════════════════════════════
+  ARCHIVOS MODIFICADOS
+═══════════════════════════════════════════════════════════════
+
+✓ index.html              - Sistema de exclusión, detección mejorada
+✓ js/AnimationController.js - Filtrado en playByKeyword()
+
+═══════════════════════════════════════════════════════════════
+  DOCUMENTACIÓN
+═══════════════════════════════════════════════════════════════
+
+Ver: FIX_ANIMACION_GUN_SHOT.md (guía completa)
+
+═══════════════════════════════════════════════════════════════

@@ -1,0 +1,192 @@
+{
+    "npcs": [
+        {
+            "npc_id": "npc_001",
+            "name": "Don Pedro - Minero Veterano",
+            "location": "copiapo",
+            "position": {
+                "x": -85,
+                "z": -5
+            },
+            "dialog_type": "Historia",
+            "historical_cue": "Trabajé en las minas de Chañarcillo durante 30 años. Cuando Juan Godoy descubrió la plata en 1832, Copiapó se transformó de un pueblo polvoriento en la capital minera de Chile. Las vetas eran tan ricas que se decía que la plata brotaba de las paredes. Miles de personas llegaron buscando fortuna, y con ellas llegó el primer ferrocarril de Sudamérica en 1851, conectando Copiapó with Caldera. Esos fueron tiempos de prosperidad, pero también de trabajo duro bajo el sol implacable del desierto.",
+            "youtube_videos": [
+                {
+                    "title": "Historia de la Minería en Atacama",
+                    "url": "https://www.youtube.com/watch?v=nPm0ur2SpYg",
+                    "description": "Documental sobre el auge minero de Chañarcillo"
+                },
+                {
+                    "title": "El Ferrocarril de Atacama",
+                    "url": "https://www.youtube.com/watch?v=qi3VrK_WPl8",
+                    "description": "Historia del primer ferrocarril de Sudamérica"
+                }
+            ]
+        },
+        {
+            "npc_id": "npc_002",
+            "name": "Doña Rosa - Guardiana de Leyendas",
+            "location": "copiapo",
+            "position": {
+                "x": -75,
+                "z": -25
+            },
+            "dialog_type": "Leyenda",
+            "historical_cue": "Mi abuela me contaba sobre el Añañuca, la flor que da nombre al Desierto Florido. Cuenta la leyenda que Añañuca era una joven hermosa que se enamoró de un minero. Él partió prometiendo volver, pero nunca regresó. Ella murió de tristeza esperándolo, y donde cayeron sus lágrimas brotaron flores rojas. Por eso, cuando llueve en el desierto, las flores aparecen como lágrimas de amor eterno. Cada flor es un recordatorio de que incluso en el lugar más árido, el amor puede florecer."
+        },
+        {
+            "npc_id": "npc_003",
+            "name": "Capitán Vargas - Veterano de Guerra",
+            "location": "copiapo",
+            "position": {
+                "x": -95,
+                "z": -15
+            },
+            "dialog_type": "Historia",
+            "historical_cue": "Serví en el Batallón Atacama durante la Guerra del Pacífico. Nos llamaban 'Los Curitas' por nuestros uniformes negros. En la Batalla de Tacna, el 26 de mayo de 1880, nuestro batallón demostró un valor inquebrantable. A pesar de estar en inferioridad numérica, resistimos hasta el final. Muchos de mis compañeros cayeron ese día, pero su sacrificio nunca será olvidado. El Batallón Atacama es símbolo del coraje y la determinación del pueblo chileno.",
+            "youtube_videos": [
+                {
+                    "title": "Batallón Atacama en la Guerra del Pacífico",
+                    "url": "https://www.youtube.com/watch?v=ubyySOcTfpY",
+                    "description": "Historia del heroico Batallón Atacama y su participación en la Guerra del Pacífico"
+                }
+            ]
+        },
+        {
+            "npc_id": "npc_004",
+            "name": "María - Guía del Desierto Florido",
+            "location": "desierto_florido",
+            "position": {
+                "x": -15,
+                "z": -60
+            },
+            "dialog_type": "Paisaje",
+            "historical_cue": "El Desierto Florido es uno de los fenómenos naturales más espectaculares del planeta. Ocurre cada 5 a 7 años cuando las lluvias del fenómeno de El Niño despiertan semillas que han permanecido latentes durante décadas. De repente, el desierto más árido del mundo se transforma en un tapiz de colores: malvas, añañucas, suspiros y más de 200 especies de flores cubren el suelo. Es como si la naturaleza pintara un cuadro efímero que dura solo unas semanas. Turistas de todo el mundo vienen a presenciar este milagro del desierto."
+        },
+        {
+            "npc_id": "npc_005",
+            "name": "Don Esteban - Botánico Local",
+            "location": "desierto_florido",
+            "position": {
+                "x": 10,
+                "z": -70
+            },
+            "dialog_type": "Historia",
+            "historical_cue": "Las semillas del desierto son verdaderas sobrevivientes. Pueden permanecer dormidas en el suelo durante 10, 20, incluso 50 años, esperando las condiciones perfectas. Cuando finalmente llueve lo suficiente, germinan todas a la vez en una explosión de vida. La añañuca roja es la más famosa, pero también tenemos la pata de guanaco, la garra de león y el suspiro del campo. Cada especie tiene su propia estrategia de supervivencia. Es un laboratorio natural de adaptación y resistencia.",
+            "youtube_videos": [
+                {
+                    "title": "Flora del Desierto de Atacama",
+                    "url": "https://www.youtube.com/watch?v=pyTouWzh0cA",
+                    "description": "Documental sobre la increíble flora que sobrevive en el desierto más árido del mundo"
+                }
+            ]
+        },
+        {
+            "npc_id": "npc_006",
+            "name": "Capitán Morales - Pescador Artesanal",
+            "location": "bahia_inglesa",
+            "position": {
+                "x": 75,
+                "z": 25
+            },
+            "dialog_type": "Historia",
+            "historical_cue": "Bahía Inglesa recibió su nombre en 1687 cuando el corsario inglés Edward Davis ancló aquí su nave. Antes, los changos, pescadores indígenas, ya conocían estas aguas ricas en peces. Durante la época colonial, fue un puerto clandestino para el contrabando. Hoy es famosa por sus playas de arena blanca y aguas turquesas, pero pocos saben que bajo estas aguas tranquilas yacen restos de antiguos naufragios. He pescado aquí toda mi vida, y el mar siempre tiene historias que contar."
+        },
+        {
+            "npc_id": "npc_007",
+            "name": "Elena - Bióloga Marina",
+            "location": "bahia_inglesa",
+            "position": {
+                "x": 85,
+                "z": 25
+            },
+            "dialog_type": "Turismo",
+            "historical_cue": "Bahía Inglesa es un paraíso para los amantes del mar. Sus aguas cristalinas alcanzan temperaturas de hasta 20°C en verano, perfectas para nadar y bucear. La playa de arena blanca contrasta con el azul turquesa del océano, creando un paisaje que parece del Caribe. Pero lo más especial es su biodiversidad marina: delfines, lobos marinos, pingüinos de Humboldt y una gran variedad de peces. Es uno de los destinos turísticos más importantes de la región de Atacama, y un lugar perfecto para desconectar y disfrutar de la naturaleza."
+        },
+        {
+            "npc_id": "npc_008",
+            "name": "Abuelo Tomás - Contador de Historias",
+            "location": "copiapo",
+            "position": {
+                "x": -80,
+                "z": -30
+            },
+            "dialog_type": "Leyenda",
+            "historical_cue": "Déjame contarte sobre los Diaguitas, el pueblo que habitó estas tierras mucho antes que nosotros. Eran maestros alfareros, famosos por sus jarros-pato que combinaban belleza y funcionalidad. Creían que el agua era sagrada, y sus cerámicas representaban animales acuáticos como patos y ranas. Cuando los incas llegaron en el siglo XV, los Diaguitas resistieron ferozmente. Aunque finalmente fueron conquistados, su legado permanece en cada pieza de cerámica que encontramos. Son los verdaderos guardianes de la historia de Atacama."
+        },
+        {
+            "npc_id": "npc_009",
+            "name": "Profesora Claudia - Historiadora",
+            "location": "copiapo",
+            "position": {
+                "x": -90,
+                "z": 10
+            },
+            "dialog_type": "Historia",
+            "historical_cue": "Copiapó fue fundada en 1744, pero su verdadero auge llegó con la minería. Además de Chañarcillo, hubo otros yacimientos importantes como Tres Puntas y Ladrillos. La riqueza minera financió la construcción de hermosos edificios neoclásicos que aún se conservan en el centro histórico. También se fundó la primera escuela de minas de Chile en 1857. Copiapó fue pionera en muchos aspectos: tuvo el primer ferrocarril, el primer telégrafo y una de las primeras plantas eléctricas del país. Es una ciudad con un patrimonio histórico invaluable.",
+            "youtube_videos": [
+                {
+                    "title": "Historia de Copiapó",
+                    "url": "https://www.youtube.com/watch?v=DdldpR-jCmI",
+                    "description": "Documental sobre la fundación y desarrollo de Copiapó"
+                },
+                {
+                    "title": "Patrimonio Histórico de Atacama",
+                    "url": "https://www.youtube.com/watch?v=hvQulMMyDvs",
+                    "description": "Arquitectura y patrimonio histórico de la región"
+                }
+            ]
+        },
+        {
+            "npc_id": "npc_010",
+            "name": "Javier - Guía Turístico",
+            "location": "desierto_florido",
+            "position": {
+                "x": 5,
+                "z": -80
+            },
+            "dialog_type": "Turismo",
+            "historical_cue": "El Parque Nacional Llanos de Challe es el mejor lugar para ver el Desierto Florido. Tiene más de 45,000 hectáreas protegidas donde puedes caminar entre millones de flores. El mejor momento es entre septiembre y noviembre, después de las lluvias invernales. Además de las flores, puedes ver guanacos, zorros culpeo y más de 50 especies de aves. Hay senderos señalizados y miradores naturales. Te recomiendo venir temprano en la mañana cuando las flores están frescas y los colores son más intensos. Es una experiencia que no olvidarás jamás."
+        },
+        {
+            "npc_id": "npc_011",
+            "name": "Sofía - Arqueóloga",
+            "location": "copiapo",
+            "position": {
+                "x": -70,
+                "z": -20
+            },
+            "dialog_type": "Historia",
+            "historical_cue": "He dedicado mi vida a estudiar la cultura Diaguita. Sus cementerios nos revelan una sociedad compleja con creencias profundas sobre la vida después de la muerte. Enterraban a sus muertos con ofrendas: jarros con chicha, collares de conchas marinas traídas desde la costa, y herramientas de cobre. Los jarros-pato no eran solo decorativos, tenían un significado ritual relacionado con el agua y la fertilidad. Cada diseño geométrico cuenta una historia: líneas en zigzag representan el agua, círculos el sol, y triángulos las montañas. Es fascinante cómo lograron crear una identidad cultural tan rica en un ambiente tan hostil.",
+            "youtube_videos": [
+                {
+                    "title": "Cultura Diaguita en Atacama",
+                    "url": "https://www.youtube.com/watch?v=rd4Q3exTdXI",
+                    "description": "Investigación arqueológica sobre la fascinante cultura Diaguita y sus tradiciones"
+                }
+            ]
+        },
+        {
+            "npc_id": "npc_012",
+            "name": "Valentina - Astrónoma",
+            "location": "desierto_florido",
+            "position": {
+                "x": -5,
+                "z": -75
+            },
+            "dialog_type": "Paisaje",
+            "historical_cue": "El desierto de Atacama tiene los cielos más claros del planeta, por eso alberga algunos de los observatorios más importantes del mundo. La ausencia de humedad y contaminación lumínica permite ver el universo con una claridad asombrosa. Aquí se encuentra ALMA, el radiotelescopio más grande del mundo, y el Observatorio Paranal con el Very Large Telescope. En una noche despejada puedes ver la Vía Láctea con tanta nitidez que parece que puedes tocarla. Los pueblos originarios ya conocían este cielo: los Diaguitas usaban las estrellas para guiar sus cultivos y ceremonias. El desierto conecta la tierra con el cosmos de una manera única."
+        },
+        {
+            "npc_id": "npc_013",
+            "name": "Diego - Viajero Casual",
+            "location": "bahia_inglesa",
+            "position": {
+                "x": 95,
+                "z": 25
+            },
+            "dialog_type": "Turismo",
+            "historical_cue": "¡Hola viajero! Soy Diego, un mochilero que recorre Chile de norte a sur. Bahía Inglesa es uno de mis lugares favoritos. Las playas son increíbles, el agua es cristalina y la gente es muy amable. Si tienes tiempo, te recomiendo probar los mariscos frescos en los restaurantes locales, especialmente las machas a la parmesana. También puedes hacer kayak, buceo o simplemente relajarte en la arena. Este lugar tiene una energía especial que te hace sentir en paz. ¡Disfruta tu aventura!"
+        }
+    ]
+}

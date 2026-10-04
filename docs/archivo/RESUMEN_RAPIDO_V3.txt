@@ -1,0 +1,39 @@
+🎮 CAMBIOS APLICADOS - VERSIÓN 3
+================================
+
+✅ COMPLETADO:
+
+1. Sistema de colisiones REMOVIDO
+   → Movimiento libre restaurado
+
+2. Beach.glb → Escala 0.08 (ícono pequeño)
+   → Se ve como representación de playa
+
+3. Gaviotas → Escala 0.01 (muy pequeñas)
+   → 5 gaviotas alrededor del terreno
+
+4. Jugador → Adventurer.fbx
+   → Animaciones: idle, walk, run, jump
+   → Salto con BARRA ESPACIADORA ✅
+
+5. Male_Casual.fbx → NPC "Diego"
+   → Ubicado en Bahía Inglesa (x:85, z:-10)
+   → Interactuable con tecla E
+
+================================
+SERVIDOR: http://localhost:8000
+================================
+
+RECARGA LA PÁGINA (F5) para ver los cambios
+
+CONTROLES:
+- WASD / Flechas: Mover
+- Shift: Correr
+- ESPACIO: Saltar
+- E: Interactuar
+- I: Inventario
+- Mouse: Rotar cámara
+
+================================
+Estado: ✅ LISTO PARA PROBAR
+================================
