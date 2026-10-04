@@ -299,13 +299,14 @@ import { Tutorial } from './Tutorial.js';
                 const playerBBox = new THREE.Box3().setFromObject(player.mesh);
                 const playerYOffset = -playerBBox.min.y;
 
-                // 👟 ELEVACIÓN LIGERA: Subir un poco para que se vean los pies
-                const finalYPosition = playerYOffset + 0.3; // +0.3 unidades para elevar ligeramente
+                // Los pies pisan el suelo (antes se elevaba 0.3 y el personaje se veía flotando)
+                const finalYPosition = playerYOffset;
+                player.restY = finalYPosition;
 
                 // Posición inicial ligeramente elevada
                 player.mesh.position.set(0, finalYPosition, 0);
 
-                console.log(`  📐 Offset Y del jugador: ${playerYOffset.toFixed(2)} → ${finalYPosition.toFixed(2)} (elevado +0.3)`);
+                console.log(`  📐 Offset Y del jugador: ${playerYOffset.toFixed(2)} → ${finalYPosition.toFixed(2)} `);
 
                 // Rotación inicial (si el modelo mira en dirección incorrecta)
                 // player.mesh.rotation.y = Math.PI; // Descomentar si mira hacia atrás

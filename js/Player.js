@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
-const GROUND_TOLERANCE = 3.5; // altura máxima sobre el suelo en la que aún se considera "apoyado"
+const GRAVITY = 45;     // unidades/s²
+const JUMP_SPEED = 15;  // unidades/s -> salto de ~2,5 unidades y ~0,65 s en el aire
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const PLAYER_RADIUS = 1.5;
 const DEFAULT_OBSTACLE_RADIUS = 2.0;
@@ -29,7 +30,7 @@ export class Player {
         // Velocidades reducidas para movimiento más realista
         this.speed = 0.15;              // Velocidad de caminar (antes: 0.4 - muy rápido)
         this.sprintMultiplier = 2.0;    // Multiplicador para correr (0.15 * 2 = 0.3)
-        this.jumpForce = 1.5;           // Fuerza de salto (antes: 0.30)
+        this.restY = 0;                 // altura del origen del modelo cuando pisa el suelo (la fija main.js)
         this.isGrounded = false;
         this.canJump = true;
         this.isMoving = false;
@@ -163,40 +164,37 @@ export class Player {
         // 🔊 SISTEMA DE SONIDOS DE PASOS
         this.updateFootstepSounds(delta);
 
-        // Detección de suelo: el terreno es plano (y = 0), no hace falta raycast
-        // (un raycast exactamente sobre un vértice de la malla puede fallar por precisión)
-        this.isGrounded = this.mesh.position.y < GROUND_TOLERANCE;
+        // Salto y gravedad en unidades por segundo (iguales en cualquier equipo).
+        // El terreno es plano: el suelo está a la altura de reposo del modelo (restY).
+        const dt = Math.min(delta, 0.05);
+        const restY = this.restY;
+        this.isGrounded = this.mesh.position.y <= restY + 0.01;
 
-        // Salto (solo con barra espaciadora)
         if (keys.space && this.isGrounded && this.canJump && canMove) {
-            this.velocity.y = this.jumpForce;
+            this.velocity.y = JUMP_SPEED;
             if (window.audioManager && !window.audioManager.isMuted) window.audioManager.play('jump');
             this.canJump = false;
             this.isJumping = true;
+            this.isGrounded = false;
         }
 
         if (!keys.space) {
             this.canJump = true;
         }
 
-        if (this.isGrounded && this.isJumping) {
-            this.isJumping = false;
-        }
-
-        // Aplicar gravedad
         if (!this.isGrounded) {
-            this.velocity.y -= 9.8 * delta;
+            this.velocity.y -= GRAVITY * dt;
+            this.mesh.position.y += this.velocity.y * dt;
+
+            // Aterrizaje
+            if (this.mesh.position.y <= restY) {
+                this.mesh.position.y = restY;
+                this.velocity.y = 0;
+                this.isGrounded = true;
+                this.isJumping = false;
+            }
         } else {
-            if (this.velocity.y < 0) this.velocity.y = 0;
-        }
-
-        this.mesh.position.y += this.velocity.y * frameScale;
-
-        // Limitar caída (nivel del suelo) - a ras de suelo
-        if (this.mesh.position.y < 0) {
-            this.mesh.position.y = 0;
             this.velocity.y = 0;
-            this.isGrounded = true;
         }
 
         // Actualizar animaciones
