@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista previa - objetos del desierto</title>
+    <style>
+        html, body { margin: 0; height: 100%; overflow: hidden; background: #7fb3e6; font-family: sans-serif; }
+        #info {
+            position: fixed; left: 10px; bottom: 10px; padding: 8px 12px; color: white;
+            background: rgba(0, 0, 0, 0.55); border-radius: 6px; font-size: 13px; line-height: 1.5;
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="info"></div>
+    <script type="module">
+        import * as THREE from 'three';
+        import {
+            setSeed, createCactus, createRockCluster, createRock, createFlowerPatch,
+            createHillRing, createGround, addOutline
+        } from './js/ProceduralAssets.js';
+
+        // Parámetros por URL:  ?outline=0 (sin contorno)  ?seed=7 (otro mundo)  ?rot=0 (cámara quieta)
+        const params = new URLSearchParams(location.search);
+        const withOutline = params.get('outline') !== '0';
+        const autoRotate = params.get('rot') !== '0';
+        setSeed(Number(params.get('seed')) || 2024);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x7fb3e6);
+        scene.fog = new THREE.Fog(0xcfe3f5, 90, 230);
+
+        const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 600);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
+        // Sin ACES: el tone mapping del juego apaga los colores planos
+        renderer.toneMapping = THREE.NoToneMapping;
+        document.body.appendChild(renderer.domElement);
+
+        // Luces
+        scene.add(new THREE.HemisphereLight(0xdcebff, 0xb98a5c, 0.75));
+        const sun = new THREE.DirectionalLight(0xffffff, 2.8);
+        sun.position.set(25, 45, 20);
+        sun.castShadow = true;
+        sun.shadow.mapSize.set(2048, 2048);
+        Object.assign(sun.shadow.camera, { left: -32, right: 32, top: 32, bottom: -32, near: 5, far: 140 });
+        sun.shadow.bias = -0.0004;
+        scene.add(sun);
+
+        // Mundo
+        const decorate = (mesh, thickness) => withOutline ? addOutline(mesh, thickness) : mesh;
+
+        scene.add(createGround(400));
+        const hills = decorate(createHillRing({ inner: 60, outer: 110, count: 18 }), 0.18);
+        hills.castShadow = hills.receiveShadow = false; // cerros lejanos: sin sombras (evita rayas)
+        scene.add(hills);
+
+        function place(mesh, x, z, rotY = 0) {
+            mesh.position.set(x, 0, z);
+            mesh.rotation.y = rotY;
+            scene.add(mesh);
+        }
+
+        // Cactus (alto) repartidos
+        [[-7, -4], [-3, -12], [6, -7], [10, -2], [-11, -1], [2, -17], [-1, -2], [14, -13]]
+            .forEach(([x, z]) => place(decorate(createCactus(), 0.045), x, z));
+
+        // Rocas
+        [[-6, 3], [7, 3], [11, -8], [-10, -9], [1, -9]]
+            .forEach(([x, z]) => place(decorate(createRockCluster(), 0.05), x, z, (x * 7 + z * 3)));
+        [[-2, 7], [4, 8], [-9, 6]].forEach(([x, z]) => place(decorate(createRock(0.8), 0.04), x, z));
+
+        // Desierto florido
+        [[-2, 2], [4, -2], [-7, 0], [9, 4], [0, -6], [-4, 8], [7, -12], [-9, -7], [3, 6]]
+            .forEach(([x, z]) => place(decorate(createFlowerPatch({ count: 9, radius: 3.2 }), 0.02), x, z));
+
+        // Info en pantalla
+        function stats() {
+            const i = renderer.info.render;
+            document.getElementById('info').innerHTML =
+                `Draw calls: <b>${i.calls}</b> &nbsp;|&nbsp; Triángulos: <b>${(i.triangles / 1000).toFixed(1)}k</b><br>` +
+                `Contorno: ${withOutline ? 'sí' : 'no'} &nbsp;(?outline=0 para quitarlo) &nbsp;|&nbsp; ?seed=N cambia el mundo`;
+        }
+
+        let t = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            if (autoRotate) t += 0.0025;
+            const a = Math.sin(t) * 0.5;
+            camera.position.set(Math.sin(a) * 15, 3, Math.cos(a) * 15 + 3);
+            camera.lookAt(0, 1.8, -5);
+            renderer.render(scene, camera);
+            stats();
+        }
+        animate();
+
+        addEventListener('resize', () => {
+            camera.aspect = innerWidth / innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(innerWidth, innerHeight);
+        });
+    </script>
+</body>
+</html>
