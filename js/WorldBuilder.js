@@ -26,10 +26,12 @@ export class WorldBuilder {
         console.log('🏜️ Cargando texturas del terreno...');
 
         // Cargar todas las texturas
-        const colorMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_Color.png');
-        const normalMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_NormalGL.png');
-        const roughnessMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_Roughness.png');
-        const aoMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_AmbientOcclusion.png');
+        const colorMap = textureLoader.load(textureBasePath + 'ground_color.jpg');
+        const normalMap = textureLoader.load(textureBasePath + 'ground_normal.jpg');
+        const roughnessMap = textureLoader.load(textureBasePath + 'ground_roughness.jpg');
+        const aoMap = textureLoader.load(textureBasePath + 'ground_ao.jpg');
+
+        colorMap.colorSpace = THREE.SRGBColorSpace; // color correcto (antes se veía lavado)
 
         // Configurar repetición de texturas para cubrir todo el terreno
         const repeatX = 20;

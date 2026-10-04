@@ -2,10 +2,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 export class AssetLoader {
     constructor() {
         this.gltfLoader = new GLTFLoader();
+        this.gltfLoader.setMeshoptDecoder(MeshoptDecoder); // modelos comprimidos con Meshopt
         this.objLoader = new OBJLoader();
         this.fbxLoader = new FBXLoader();
         this.textureLoader = new THREE.TextureLoader();

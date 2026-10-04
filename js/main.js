@@ -473,8 +473,28 @@
         const obstacles = [];
         const allInteractables = [];
 
+        // Contador de rendimiento (F3): FPS, draw calls y triángulos
+        const perfEl = document.createElement('div');
+        perfEl.style.cssText = 'position:fixed;left:10px;top:10px;z-index:9999;display:none;padding:6px 10px;background:rgba(0,0,0,.7);color:#0f0;font:12px monospace;border-radius:4px;pointer-events:none';
+        document.body.appendChild(perfEl);
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F3') { e.preventDefault(); perfEl.style.display = perfEl.style.display === 'none' ? 'block' : 'none'; }
+        });
+        let perfFrames = 0, perfLast = performance.now();
+
         function animate() {
             requestAnimationFrame(animate);
+
+            perfFrames++;
+            const perfNow = performance.now();
+            if (perfNow - perfLast >= 500) {
+                if (perfEl.style.display !== 'none') {
+                    const info = renderer.info.render;
+                    perfEl.textContent = `${Math.round(perfFrames * 1000 / (perfNow - perfLast))} FPS | ${info.calls} draw calls | ${(info.triangles / 1000).toFixed(0)}k tris`;
+                }
+                perfFrames = 0;
+                perfLast = perfNow;
+            }
 
             const currentTime = performance.now();
             const delta = Math.min((currentTime - lastTime) / 1000, 0.1); // evita saltos tras pausas
