@@ -10,18 +10,39 @@ const mimeTypes = {
     '.css': 'text/css',
     '.json': 'application/json',
     '.png': 'image/png',
-    '.jpg': 'image/jpg',
+    '.jpg': 'image/jpeg',
     '.gif': 'image/gif',
     '.svg': 'image/svg+xml',
-    '.ico': 'image/x-icon'
+    '.ico': 'image/x-icon',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.glb': 'model/gltf-binary',
+    '.gltf': 'model/gltf+json',
+    '.fbx': 'application/octet-stream',
+    '.mp3': 'audio/mpeg',
+    '.wav': 'audio/wav'
 };
 
 const server = http.createServer((req, res) => {
     console.log(`${req.method} ${req.url}`);
 
-    let filePath = '.' + req.url;
-    if (filePath === './') {
-        filePath = './index.html';
+    // Quitar ?query y decodificar %20 (hay archivos con espacios, ej. "Button Click  Sound Effect.mp3")
+    let urlPath;
+    try {
+        urlPath = decodeURIComponent(req.url.split('?')[0]);
+    } catch (e) {
+        res.writeHead(400);
+        res.end('URL inválida');
+        return;
+    }
+
+    let filePath = path.join(__dirname, urlPath === '/' ? 'index.html' : urlPath);
+
+    // Seguridad: no servir nada fuera de la carpeta del juego
+    if (!filePath.startsWith(__dirname)) {
+        res.writeHead(403);
+        res.end('Acceso denegado');
+        return;
     }
 
     const extname = String(path.extname(filePath)).toLowerCase();
