@@ -1,3 +1,8 @@
+> 🎮 **Jugar online:** https://rosejulieth.github.io/Ecos_de_Chile_Atacamav2/
+>
+> Para probarlo en local: `python3 -m http.server 8000` y abrir http://localhost:8000
+> (hay que usar un servidor; abrir `index.html` con doble clic no funciona por los módulos de JavaScript).
+
 # 🏜️ Ecos de Chile: Atacama
 
 ## Experiencia Educativa Interactiva 3D
