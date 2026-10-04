@@ -15,7 +15,7 @@ export class WorldBuilder {
         // Crear variaciones en el terreno
         const vertices = groundGeo.attributes.position.array;
         for (let i = 0; i < vertices.length; i += 3) {
-            vertices[i + 2] = Math.random() * 0.5; // Pequeñas elevaciones
+            vertices[i + 2] = 0; // Terreno plano: coincide con el raycast del suelo
         }
         groundGeo.computeVertexNormals();
 
@@ -30,13 +30,12 @@ export class WorldBuilder {
         const normalMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_NormalGL.png');
         const roughnessMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_Roughness.png');
         const aoMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_AmbientOcclusion.png');
-        const displacementMap = textureLoader.load(textureBasePath + 'Ground079L_1K-PNG_Displacement.png');
 
         // Configurar repetición de texturas para cubrir todo el terreno
         const repeatX = 20;
         const repeatY = 20;
 
-        [colorMap, normalMap, roughnessMap, aoMap, displacementMap].forEach(texture => {
+        [colorMap, normalMap, roughnessMap, aoMap].forEach(texture => {
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.RepeatWrapping;
             texture.repeat.set(repeatX, repeatY);
@@ -48,9 +47,7 @@ export class WorldBuilder {
             normalMap: normalMap,
             roughnessMap: roughnessMap,
             aoMap: aoMap,
-            displacementMap: displacementMap,
-            displacementScale: 0.1,
-            side: THREE.DoubleSide
+            side: THREE.FrontSide
         });
 
         console.log('✅ Texturas del terreno cargadas');
@@ -166,36 +163,30 @@ export class WorldBuilder {
     }
 
     setupLighting() {
-        // 💡 Luz ambiental más brillante para colores nítidos
         const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
         this.scene.add(ambientLight);
 
-        // ☀️ Sol principal (Atacama tiene mucho sol) - más brillante y blanco
+        // Sol: la sombra cubre solo el área alrededor del jugador (main.js la mueve con él)
         const sunLight = new THREE.DirectionalLight(0xFFFFFF, 2.0);
         sunLight.position.set(50, 100, 30);
         sunLight.castShadow = true;
-        sunLight.shadow.camera.left = -100;
-        sunLight.shadow.camera.right = 100;
-        sunLight.shadow.camera.top = 100;
-        sunLight.shadow.camera.bottom = -100;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
-        sunLight.shadow.bias = -0.0001;
+        sunLight.shadow.camera.left = -40;
+        sunLight.shadow.camera.right = 40;
+        sunLight.shadow.camera.top = 40;
+        sunLight.shadow.camera.bottom = -40;
+        sunLight.shadow.camera.near = 10;
+        sunLight.shadow.camera.far = 250;
+        sunLight.shadow.mapSize.set(1024, 1024);
+        sunLight.shadow.bias = -0.0005;
         this.scene.add(sunLight);
+        this.scene.add(sunLight.target);
 
-        // 💡 Luz de relleno más brillante
-        const fillLight = new THREE.DirectionalLight(0xFFFFFF, 0.6);
-        fillLight.position.set(-30, 50, -30);
-        this.scene.add(fillLight);
-
-        // 💡 Luz adicional desde atrás para mejor visibilidad
-        const backLight = new THREE.DirectionalLight(0xFFFFFF, 0.4);
-        backLight.position.set(0, 40, -50);
-        this.scene.add(backLight);
-
-        // 💡 Luz hemisférica para simular luz del cielo
-        const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0xD2B48C, 0.5);
+        // Luz de relleno única (reemplaza fill + back + hemisférica anteriores)
+        const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0xD2B48C, 0.7);
         this.scene.add(hemiLight);
+
+        this.sunLight = sunLight;
+        return sunLight;
     }
 
     getGround() {

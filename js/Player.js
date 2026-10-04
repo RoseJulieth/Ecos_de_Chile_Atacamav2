@@ -1,5 +1,11 @@
 import * as THREE from 'three';
 
+const DOWN = new THREE.Vector3(0, -1, 0);
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+const PLAYER_RADIUS = 1.5;
+const DEFAULT_OBSTACLE_RADIUS = 2.0;
+const OBSTACLE_RADIUS = { rock: 3.0, house: 8.0, npc: 1.0, tree: 2.5 };
+
 // ============================================================
 // CONFIGURACIÓN DE ESCALA GLOBAL
 // ============================================================
@@ -89,6 +95,22 @@ export class Player {
         this.animationController = controller;
     }
 
+    // Colisión por distancia en el plano XZ contra obstáculos con radio por tipo
+    collides(x, z, obstacles) {
+        for (let i = 0; i < obstacles.length; i++) {
+            const obstacle = obstacles[i];
+            if (!obstacle.visible) continue;
+
+            const type = obstacle.userData && obstacle.userData.type;
+            const minDist = PLAYER_RADIUS + (OBSTACLE_RADIUS[type] || DEFAULT_OBSTACLE_RADIUS);
+            const dx = x - obstacle.position.x;
+            const dz = z - obstacle.position.z;
+
+            if (dx * dx + dz * dz < minDist * minDist) return true;
+        }
+        return false;
+    }
+
     update(keys, cameraAngle, delta, ground, canMove = true, obstacles = []) {
         // Movimiento horizontal
         const direction = new THREE.Vector3();
@@ -103,85 +125,40 @@ export class Player {
 
         this.isMoving = direction.length() > 0;
 
+        // Factor para que la velocidad sea igual en cualquier equipo (1 = 60 FPS)
+        const frameScale = Math.min(delta, 0.05) * 60;
+
         if (this.isMoving && canMove) {
             direction.normalize();
-            direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
+            direction.applyAxisAngle(Y_AXIS, cameraAngle);
 
-            // 🔧 SISTEMA DE COLISIONES
-            // Guardar posición actual
-            const oldPosition = this.mesh.position.clone();
+            const oldX = this.mesh.position.x;
+            const oldZ = this.mesh.position.z;
+            const step = currentSpeed * frameScale;
 
-            // Calcular nueva posición
-            const newX = this.mesh.position.x + direction.x * currentSpeed;
-            const newZ = this.mesh.position.z + direction.z * currentSpeed;
+            // Límites del mapa (terreno 200x200, centrado en 0,0)
+            const mapLimit = 95;
+            const newX = Math.max(-mapLimit, Math.min(mapLimit, oldX + direction.x * step));
+            const newZ = Math.max(-mapLimit, Math.min(mapLimit, oldZ + direction.z * step));
 
-            // 🗺️ LÍMITES DEL MAPA (terreno 200x200, centrado en 0,0)
-            const mapLimit = 95; // Límite un poco menor que 100 para dar margen
-            const clampedX = Math.max(-mapLimit, Math.min(mapLimit, newX));
-            const clampedZ = Math.max(-mapLimit, Math.min(mapLimit, newZ));
-
-            // Aplicar movimiento con límites
-            this.mesh.position.x = clampedX;
-            this.mesh.position.z = clampedZ;
-
-            // 🚧 DETECCIÓN DE COLISIONES CON OBJETOS
-            if (obstacles.length > 0) {
-                const playerRadius = 1.5; // Radio de colisión del jugador
-                let collision = false;
-
-                for (const obstacle of obstacles) {
-                    if (!obstacle.visible) continue; // Ignorar objetos invisibles
-
-                    const distance = this.mesh.position.distanceTo(obstacle.position);
-
-                    // Determinar radio del obstáculo según su tipo
-                    let obstacleRadius = 2.0; // Radio por defecto
-
-                    if (obstacle.userData && obstacle.userData.type) {
-                        switch (obstacle.userData.type) {
-                            case 'rock':
-                                obstacleRadius = 3.0;
-                                break;
-                            case 'house':
-                                obstacleRadius = 8.0; // Casas grandes
-                                break;
-                            case 'npc':
-                                obstacleRadius = 1.0; // NPCs más pequeños
-                                break;
-                            case 'tree':
-                                obstacleRadius = 2.5;
-                                break;
-                            default:
-                                obstacleRadius = 2.0;
-                        }
-                    }
-
-                    // Verificar colisión
-                    if (distance < (playerRadius + obstacleRadius)) {
-                        collision = true;
-                        break;
-                    }
-                }
-
-                // Si hay colisión, revertir movimiento
-                if (collision) {
-                    this.mesh.position.copy(oldPosition);
-                }
+            // Colisión con deslizamiento: si el paso completo choca, se prueba cada eje por separado
+            if (!this.collides(newX, newZ, obstacles)) {
+                this.mesh.position.x = newX;
+                this.mesh.position.z = newZ;
+            } else if (!this.collides(newX, oldZ, obstacles)) {
+                this.mesh.position.x = newX;
+            } else if (!this.collides(oldX, newZ, obstacles)) {
+                this.mesh.position.z = newZ;
             }
 
             // Rotación suave hacia la dirección del movimiento (solo si se movió)
-            if (!this.mesh.position.equals(oldPosition)) {
+            if (this.mesh.position.x !== oldX || this.mesh.position.z !== oldZ) {
                 const targetRotation = Math.atan2(direction.x, direction.z);
-                const currentRotation = this.mesh.rotation.y;
-                const rotationDiff = targetRotation - currentRotation;
-
-                // Normalizar diferencia de ángulo
-                let normalizedDiff = rotationDiff;
+                let normalizedDiff = targetRotation - this.mesh.rotation.y;
                 while (normalizedDiff > Math.PI) normalizedDiff -= Math.PI * 2;
                 while (normalizedDiff < -Math.PI) normalizedDiff += Math.PI * 2;
 
-                // Interpolación suave
-                this.mesh.rotation.y += normalizedDiff * 0.15;
+                this.mesh.rotation.y += normalizedDiff * Math.min(1, 0.15 * frameScale);
             }
         }
 
@@ -189,10 +166,7 @@ export class Player {
         this.updateFootstepSounds(delta);
 
         // ⚙️ DETECCIÓN DE SUELO AJUSTADA A NUEVA ESCALA
-        this.raycaster.set(
-            new THREE.Vector3(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z),
-            new THREE.Vector3(0, -1, 0)
-        );
+        this.raycaster.set(this.mesh.position, DOWN);
 
         const intersects = this.raycaster.intersectObject(ground);
         this.isGrounded = intersects.length > 0 && intersects[0].distance < 3.5;  // Antes: 2.0
@@ -219,7 +193,7 @@ export class Player {
             if (this.velocity.y < 0) this.velocity.y = 0;
         }
 
-        this.mesh.position.y += this.velocity.y;
+        this.mesh.position.y += this.velocity.y * frameScale;
 
         // Limitar caída (nivel del suelo) - a ras de suelo
         if (this.mesh.position.y < 0) {

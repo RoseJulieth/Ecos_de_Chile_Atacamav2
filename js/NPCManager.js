@@ -410,7 +410,7 @@ export class NPCManager {
         return icons[type] || '💬';
     }
 
-    update(playerPosition) {
+    update(playerPosition, delta = 0.016) {
         this.npcs.forEach(npc => {
             // Animación de flotación del indicador
             const indicator = npc.children[0];
@@ -441,7 +441,7 @@ export class NPCManager {
 
             // Actualizar mixer de animaciones si existe
             if (npc.userData.mixer) {
-                npc.userData.mixer.update(0.016); // ~60fps
+                npc.userData.mixer.update(delta);
             }
         });
     }

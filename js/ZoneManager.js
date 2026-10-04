@@ -28,7 +28,7 @@ export class ZoneManager {
     async createMainPath() {
         console.log('🛤️ Creando camino principal...');
 
-        const pathModel = 'assets/models/terrain/Rock_path_round_Small.glb';
+        const pathModel = 'assets/models/terrain/Rock_Path_Round_Small.glb';
 
         // Camino desde el centro hacia el oeste (Copiapó)
         const westPathPositions = [
@@ -123,7 +123,7 @@ export class ZoneManager {
     }
 
     async placePathsAroundCopiap(centerX, centerZ) {
-        const pathModel = 'assets/models/terrain/Rock_path_round_Small.glb';
+        const pathModel = 'assets/models/terrain/Rock_Path_Round_Small.glb';
 
         // Caminos alrededor del terreno de Copiapó
         const pathPositions = [
