@@ -482,6 +482,28 @@
         });
         let perfFrames = 0, perfLast = performance.now();
 
+        // Ambiente por zona: Copiapó (x = -90) tiene ciudad, Bahía Inglesa (x = 90) tiene mar
+        const ZONA_COPIAPO = { x: -90, z: 0 };
+        const ZONA_BAHIA = { x: 90, z: 0 };
+
+        // 1 dentro de `cerca` unidades de la zona, 0 a más de `lejos`, gradual entre medio
+        function cercaniaZona(pos, zona, cerca = 25, lejos = 85) {
+            const d = Math.hypot(pos.x - zona.x, pos.z - zona.z);
+            const t = Math.max(0, Math.min(1, (lejos - d) / (lejos - cerca)));
+            return t * t * (3 - 2 * t);
+        }
+
+        function updateZoneAudio(pos, delta) {
+            if (!audioManager) return;
+            const mar = cercaniaZona(pos, ZONA_BAHIA);
+            const ciudad = cercaniaZona(pos, ZONA_COPIAPO);
+
+            audioManager.setLayerTarget('ocean_waves', mar);
+            // El viento domina en el desierto abierto y baja junto al mar y entre las casas
+            audioManager.setLayerTarget('desert_wind', Math.max(0.1, 1 - 0.7 * mar - 0.5 * ciudad));
+            audioManager.updateLayers(delta);
+        }
+
         function animate() {
             requestAnimationFrame(animate);
 
@@ -516,6 +538,8 @@
 
                 // Actualizar jugador con obstáculos
                 player.update(keys, cameraController.getAngle(), delta, ground, canMove, obstacles);
+
+                updateZoneAudio(player.getPosition(), delta);
 
                 // La sombra del sol sigue al jugador
                 if (sunLight) {

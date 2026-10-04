@@ -19,6 +19,18 @@
             "volume": 0.25,
             "loop": true,
             "description": "Ambiente del desierto de Atacama"
+        },
+        "desert_wind": {
+            "path": "assets/sounds/ambient/desert_wind.mp3",
+            "volume": 0.35,
+            "loop": true,
+            "description": "Viento del desierto (capa: sube lejos de la costa)"
+        },
+        "ocean_waves": {
+            "path": "assets/sounds/ambient/ocean_waves.mp3",
+            "volume": 0.5,
+            "loop": true,
+            "description": "Olas del mar (capa: sube cerca de Bahía Inglesa)"
         }
     },
     "sfx": {

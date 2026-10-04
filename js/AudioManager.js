@@ -8,6 +8,10 @@ export class AudioManager {
         this.currentMusic = null;
         this.currentAmbient = null;
 
+        // Capas de ambiente (viento, olas): suenan a la vez y cambian de volumen según la zona
+        this.layerTargets = new Map(); // id -> volumen objetivo (0..1)
+        this.layerGains = new Map();   // id -> volumen actual (0..1)
+
         // Configuración de volumen global
         this.masterVolume = 1.0;
         this.musicVolume = 0.7;
@@ -245,6 +249,7 @@ export class AudioManager {
      * Detener ambiente actual
      */
     stopAmbient() {
+        this.stopLayers();
         if (this.currentAmbient) {
             this.stop(this.currentAmbient);
             this.currentAmbient = null;
@@ -348,7 +353,57 @@ export class AudioManager {
     updateAllVolumes() {
         for (const [soundId, soundData] of this.sounds) {
             const { audio, baseVolume, type } = soundData;
-            audio.setVolume(this.calculateVolume(baseVolume, type));
+            const layerGain = this.layerGains.has(soundId) ? this.layerGains.get(soundId) : 1;
+            audio.setVolume(this.calculateVolume(baseVolume, type) * layerGain);
+        }
+    }
+
+    /**
+     * Definir a qué volumen (0..1) debe llegar una capa de ambiente; el cambio es gradual.
+     * La capa empieza a sonar sola cuando su objetivo es mayor que 0.
+     */
+    setLayerTarget(soundId, target) {
+        this.layerTargets.set(soundId, Math.max(0, Math.min(1, target)));
+    }
+
+    /**
+     * Acercar cada capa a su objetivo. Llamar una vez por frame.
+     * @param {number} delta segundos desde el frame anterior
+     * @param {number} fadeTime segundos que tarda una capa en ir de 0 a 1
+     */
+    updateLayers(delta, fadeTime = 1.5) {
+        for (const [soundId, target] of this.layerTargets) {
+            const soundData = this.sounds.get(soundId);
+            if (!soundData) continue;
+
+            const { audio, baseVolume, type } = soundData;
+            let gain = this.layerGains.has(soundId) ? this.layerGains.get(soundId) : 0;
+            const step = delta / fadeTime;
+
+            if (gain < target) gain = Math.min(target, gain + step);
+            else if (gain > target) gain = Math.max(target, gain - step);
+            else if (audio.isPlaying === (gain > 0)) continue; // sin cambios
+
+            this.layerGains.set(soundId, gain);
+            audio.setVolume(this.calculateVolume(baseVolume, type) * gain);
+
+            if (gain > 0 && !audio.isPlaying) {
+                audio.play();
+            } else if (gain === 0 && audio.isPlaying) {
+                audio.stop(); // silencio total: no gastar audio
+            }
+        }
+    }
+
+    /**
+     * Detener todas las capas de ambiente
+     */
+    stopLayers() {
+        for (const soundId of this.layerTargets.keys()) {
+            this.layerGains.set(soundId, 0);
+            this.layerTargets.set(soundId, 0);
+            const soundData = this.sounds.get(soundId);
+            if (soundData && soundData.audio.isPlaying) soundData.audio.stop();
         }
     }
 
