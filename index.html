@@ -93,8 +93,9 @@
             background: rgba(0, 0, 0, 0.85);
             display: none;
             flex-direction: column;
-            justify-content: center;
+            justify-content: safe center; /* si no cabe, se desplaza en vez de cortar el título */
             align-items: center;
+            overflow-y: auto;
             pointer-events: auto;
             z-index: 20;
         }
@@ -376,6 +377,161 @@
                 height: 169px !important;
             }
         }
+
+        /* ===== Pantalla de carga ===== */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            box-sizing: border-box;
+            text-align: center;
+            background: linear-gradient(135deg, #2b1a0a, #8B4513);
+            color: #FFD700;
+            transition: opacity 0.5s ease;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #loading-screen h1 {
+            font-size: clamp(34px, 7vw, 60px);
+            margin: 0;
+            text-shadow: 4px 4px 0 #8B4513, 2px 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        #loading-screen h2 {
+            margin: 8px 0 36px;
+            color: white;
+            font-weight: normal;
+        }
+
+        #loading-bar {
+            width: min(480px, 85vw);
+            height: 22px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 3px solid #FFD700;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        #loading-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #d4a017, #FFD700);
+            transition: width 0.35s ease;
+        }
+
+        #loading-info {
+            width: min(480px, 85vw);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: white;
+            font-size: 15px;
+        }
+
+        #loading-label.error {
+            color: #ff8a80;
+        }
+
+        #loading-tip {
+            margin-top: 40px;
+            max-width: min(520px, 85vw);
+            min-height: 3em;
+            color: #f3e3c3;
+            font-size: 17px;
+            font-style: italic;
+        }
+
+        #loading-continue {
+            display: none;
+            margin-top: 20px;
+        }
+
+        /* ===== Tutorial ===== */
+        #tutorial {
+            position: fixed;
+            inset: 0;
+            z-index: 200; /* sobre el HUD y el menú de pausa (#ui-layer = 100) */
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.78);
+            pointer-events: auto;
+        }
+
+        #tutorial-card {
+            width: min(640px, 100%);
+            max-height: 94vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding: 26px 30px;
+            background: linear-gradient(135deg, rgba(43, 26, 10, 0.98), rgba(110, 56, 16, 0.97));
+            border: 3px solid #d4a017;
+            border-radius: 14px;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        #tutorial-card h2 {
+            margin: 0 0 6px;
+            color: #FFD700;
+            text-align: center;
+        }
+
+        #tutorial-card .objetivo {
+            margin: 0 0 18px;
+            text-align: center;
+            color: #f3e3c3;
+            line-height: 1.45;
+        }
+
+        .tutorial-controles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 22px;
+            margin-bottom: 22px;
+        }
+
+        .tutorial-controles div {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+        }
+
+        .tecla {
+            flex: none;
+            min-width: 30px;
+            padding: 4px 9px;
+            text-align: center;
+            font: bold 13px monospace;
+            color: #2b1a0a;
+            background: #FFD700;
+            border-radius: 6px;
+            border-bottom: 3px solid #a67c00;
+            white-space: nowrap;
+        }
+
+        #tutorial-ok {
+            display: block;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 560px) {
+            .tutorial-controles {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
     <script type="importmap">
         {
@@ -406,6 +562,7 @@
             <button id="btn-resume">▶️ Continuar</button>
             <button id="btn-inventory-full">📦 Ver Inventario Completo</button>
             <button id="btn-save">💾 Guardar Progreso</button>
+            <button id="btn-controls">❓ Ver controles</button>
 
             <!-- Controles de Audio -->
             <div
@@ -716,6 +873,35 @@
                     © 2025 Jennifer Astudillo - Proyecto educativo sin fines comerciales
                 </p>
             </div>
+        </div>
+    </div>
+
+        <!-- Pantalla de carga -->
+    <div id="loading-screen">
+        <h1>Ecos de Chile</h1>
+        <h2>Región de Atacama</h2>
+        <div id="loading-bar"><div id="loading-bar-fill"></div></div>
+        <div id="loading-info"><span id="loading-label">Preparando el desierto...</span><span id="loading-pct">0%</span></div>
+        <div id="loading-tip"></div>
+        <button id="loading-continue">Entrar de todos modos</button>
+    </div>
+
+    <!-- Tutorial -->
+    <div id="tutorial">
+        <div id="tutorial-card">
+            <h2>🧭 ¿Cómo se juega?</h2>
+            <p class="objetivo">Explora Atacama, conversa con sus habitantes y encuentra los
+                <b>5 fragmentos históricos</b> escondidos en el mapa.</p>
+            <div class="tutorial-controles">
+                <div><span class="tecla">W A S D</span> Moverse (o flechas)</div>
+                <div><span class="tecla">Shift</span> Correr</div>
+                <div><span class="tecla">Espacio</span> Saltar</div>
+                <div><span class="tecla">Mouse</span> Mover la cámara (haz clic primero)</div>
+                <div><span class="tecla">E</span> Hablar / recoger fragmento</div>
+                <div><span class="tecla">I</span> Abrir el inventario</div>
+                <div><span class="tecla">Esc</span> Pausa y volumen</div>
+            </div>
+            <button id="tutorial-ok">¡Entendido, a explorar!</button>
         </div>
     </div>
 

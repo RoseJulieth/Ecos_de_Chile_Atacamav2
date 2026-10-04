@@ -13,6 +13,8 @@
         import { TerrainDecorationManager } from './TerrainDecorationManager.js';
         import { ZoneManager } from './ZoneManager.js';
         import { AudioManager } from './AudioManager.js';
+import { LoadingScreen } from './LoadingScreen.js';
+import { Tutorial } from './Tutorial.js';
 
         // ========== CONFIGURACIÓN INICIAL ==========
         const scene = new THREE.Scene();
@@ -37,6 +39,9 @@
         let assetLoader, inventory, gameState, worldBuilder, ground, audioManager;
         let player, cameraController, fragmentManager, uiManager, interactionSystem, npcManager, terrainDecoration, zoneManager;
 
+        const loading = new LoadingScreen();
+        const tutorial = new Tutorial();
+
         // Función de inicialización async
         async function initGame() {
             assetLoader = new AssetLoader();
@@ -45,16 +50,19 @@
             worldBuilder = new WorldBuilder(scene);
 
             // Construir el mundo
+            loading.set(0.03, 'Preparando el desierto...');
             sunLight = worldBuilder.setupLighting();
             ground = worldBuilder.createTerrain();
             worldBuilder.createZones();
             worldBuilder.addRocks();
 
+            loading.set(0.1, 'Creando al explorador...');
             // Crear jugador y cámara
             player = new Player(scene, assetLoader);
             cameraController = new CameraController(camera, renderer.domElement);
 
             // 🔊 INICIALIZAR SISTEMA DE AUDIO
+            loading.set(0.15, 'Cargando sonidos...');
             audioManager = new AudioManager();
             await audioManager.loadSoundConfig();
             audioManager.attachToCamera(camera);
@@ -67,6 +75,7 @@
 
             console.log('🎵 Sistema de audio inicializado');
 
+            loading.set(0.3, 'Escondiendo los fragmentos históricos...');
             // Crear fragmentos (ahora con modelos GLB)
             fragmentManager = new FragmentManager(scene, inventory, assetLoader);
             await fragmentManager.createFragments();
@@ -77,14 +86,17 @@
             // Sistema de interacción
             interactionSystem = new InteractionSystem(uiManager);
 
+            loading.set(0.4, 'Invitando a los habitantes de Atacama...');
             // NPCs (con modelos GLB y FBX)
             npcManager = new NPCManager(scene, assetLoader);
             await npcManager.createNPCs();
 
+            loading.set(0.65, 'Plantando cactus y flores del desierto...');
             // Decoración del terreno (cactus y flores)
             terrainDecoration = new TerrainDecorationManager(scene, assetLoader);
             await terrainDecoration.createDecorations();
 
+            loading.set(0.8, 'Levantando Copiapó y Bahía Inglesa...');
             // Zonas temáticas (Copiapó y Bahía Inglesa)
             zoneManager = new ZoneManager(scene, assetLoader);
             await zoneManager.createZones();
@@ -241,6 +253,7 @@
             };
 
             // Cargar modelo del jugador
+            loading.set(0.92, 'Vistiendo al explorador...');
             await loadPlayerModel();
 
             // Verificar si hay partida guardada
@@ -253,6 +266,7 @@
             // debido a las políticas de autoplay de los navegadores
 
             console.log('✅ Juego inicializado correctamente');
+            loading.set(1, '¡Listo!');
         }
 
         // ========== CARGAR MODELO DEL JUGADOR ==========
@@ -428,7 +442,12 @@
         }
 
         // Iniciar el juego (carga fragmentos y modelo del jugador)
-        initGame();
+        initGame().then(() => {
+            setTimeout(() => loading.hide(), 300); // deja ver el 100% un instante
+        }).catch((error) => {
+            console.error('❌ Error al inicializar el juego:', error);
+            loading.fail('Algo no cargó bien. Puedes intentar entrar o recargar la página (F5).');
+        });
 
         // ========== CONTROLES ==========
         const keys = {
@@ -438,6 +457,15 @@
         };
 
         window.addEventListener('keydown', (e) => {
+            // Con el tutorial abierto, Enter / Esc / Espacio / E lo cierran y nada más reacciona
+            if (tutorial.isOpen()) {
+                if (['enter', 'escape', ' ', 'e'].includes(e.key.toLowerCase())) {
+                    e.preventDefault();
+                    closeTutorial();
+                }
+                return;
+            }
+
             const key = e.key === ' ' ? 'space' : e.key.toLowerCase(); // la barra espaciadora llega como ' '
             if (key in keys) keys[key] = true;
 
@@ -530,7 +558,7 @@
                 }
 
                 // Verificar si el jugador puede moverse (no en diálogo)
-                const canMove = !interactionSystem.isInDialog();
+                const canMove = !interactionSystem.isInDialog() && !tutorial.isOpen();
 
                 // Listas reutilizadas (sin crear arreglos nuevos en cada frame)
                 obstacles.length = 0;
@@ -573,6 +601,17 @@
         }
 
         // ========== FUNCIONES DE CONTROL ==========
+        function closeTutorial() {
+            playSfx('button_click');
+            tutorial.close();
+        }
+
+        document.getElementById('tutorial-ok').addEventListener('click', closeTutorial);
+        document.getElementById('btn-controls').addEventListener('click', () => {
+            playSfx('button_click');
+            tutorial.open();
+        });
+
         function playSfx(id) {
             if (audioManager && !audioManager.isMuted) audioManager.play(id);
         }
@@ -666,7 +705,8 @@
             // Actualizar panel de inventario con datos cargados
             uiManager.updateInventoryPanel(inventory.getInventoryData());
 
-            animate();
+            // El loop de render ya corre desde el inicio (volver a llamar animate() lo duplicaba)
+            tutorial.open();
         }
 
         function continueGame() {
