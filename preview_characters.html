@@ -10,7 +10,12 @@
         #info button { margin-left: 6px; }
     </style>
     <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+        {
+            "imports": {
+                "three": "./vendor/three/three.module.min.js",
+                "three/addons/": "./vendor/three/addons/"
+            }
+        }
     </script>
 </head>
 <body>
@@ -18,7 +23,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { createGround } from './js/ProceduralAssets.js';
-        import { createCharacter, LOOKS } from './js/v3/Characters.js';
+        import { createCharacter, LOOKS } from './js/Characters.js';
 
         const params = new URLSearchParams(location.search);
         let mode = params.get('mode') || 'walk';

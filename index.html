@@ -649,8 +649,8 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+                "three": "./vendor/three/three.module.min.js",
+                "three/addons/": "./vendor/three/addons/"
             }
         }
     </script>
@@ -976,11 +976,11 @@
                 <div class="credits-section">
                     <h3>⚙️ Tecnologías Utilizadas</h3>
                     <ul class="credits-list">
-                        <li><span class="credits-highlight">Three.js r160</span> - Motor de renderizado 3D</li>
+                        <li><span class="credits-highlight">Three.js r160</span> - Motor de renderizado 3D (incluido en el proyecto)</li>
                         <li><span class="credits-highlight">JavaScript ES6+</span> - Lenguaje de programación</li>
                         <li><span class="credits-highlight">WebGL</span> - API de gráficos 3D</li>
-                        <li><span class="credits-highlight">GLTF/GLB & FBX</span> - Formatos de modelos 3D</li>
-                        <li><span class="credits-highlight">Blender & Mixamo</span> - Modelado y animaciones</li>
+                        <li><span class="credits-highlight">Generación por código</span> - Personajes, animales, edificios y objetos
+                            low-poly con sombreado toon, sin modelos 3D externos</li>
                     </ul>
                 </div>
 
@@ -991,7 +991,6 @@
                         </li>
                         <li><span class="credits-highlight">Museo Chileno de Arte Precolombino</span> - Cultura Diaguita
                         </li>
-                        <li><span class="credits-highlight">Sketchfab & Poly Pizza</span> - Modelos 3D</li>
                     </ul>
                 </div>
 
@@ -1053,7 +1052,7 @@
         </div>
     </div>
 
-    <script type="module" src="js/v3/main.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>
