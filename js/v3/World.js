@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { createGround, createHillRing, addOutline, mergeBaked, bake, setSeed, random, range } from '../ProceduralAssets.js';
 import { createCharacter, LOOKS } from './Characters.js';
-import { createCloudLayer, createPortal, createRelic, createSignboard } from './Buildings.js';
+import { createCloudLayer, createPortal, createRelic, createSignboard, createPickup } from './Buildings.js';
 
 const faceTo = (x, z, tx = 0, tz = 0) => Math.atan2(tx - x, tz - z);
 
@@ -82,6 +82,24 @@ function nameTag(name, role) {
     return s;
 }
 
+/** Iconos sobre el NPC: "!" misión disponible, "✔" lista para entregar. */
+const questIconCache = {};
+function questIcon(kind) {
+    if (questIconCache[kind]) return questIconCache[kind].clone();
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const x = c.getContext('2d');
+    const color = kind === 'ready' ? '#58e07a' : '#ffd54a';
+    x.fillStyle = color; x.beginPath(); x.arc(64, 64, 56, 0, Math.PI * 2); x.fill();
+    x.lineWidth = 8; x.strokeStyle = '#3a2418'; x.stroke();
+    x.fillStyle = '#3a2418'; x.font = 'bold 84px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(kind === 'ready' ? '✔' : '!', 64, 70);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    questIconCache[kind] = new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false });
+    return questIconCache[kind].clone();
+}
+
 const TYPE_COLORS = { Historia: 0xd9822b, Leyenda: 0xa070e0, Turismo: 0x20b2aa, Paisaje: 0x4cc35a };
 
 export class World {
@@ -126,7 +144,7 @@ export class World {
         const colliders = new Colliders();
         const cur = {
             id, def, group, colliders, radius: def.radius ?? 40,
-            interactables: [], npcs: [], fragments: [], portals: [], dynamics: [], signs: [], fauna: [], sighted: new Set()
+            interactables: [], npcs: [], fragments: [], portals: [], dynamics: [], signs: [], fauna: [], sighted: new Set(), pickups: []
         };
         setSeed(def.seed ?? 1);
 
@@ -278,6 +296,13 @@ export class World {
                 marker.position.y = 4.1;
                 root.add(marker);
 
+                const icon = new THREE.Sprite(questIcon('available'));
+                icon.scale.set(1.1, 1.1, 1);
+                icon.position.y = 4.35;
+                icon.visible = false;
+                root.add(icon);
+                let iconKind = 'available';
+
                 const [name, role = ''] = data.name.split(' - ');
                 const tag = nameTag(name, role);
                 tag.position.y = 5.0;
@@ -304,6 +329,14 @@ export class World {
                     ch.update(dt, { waving: dist < 7 });
                     marker.position.y = 4.1 + Math.sin(t * 3 + x) * 0.18;
                     marker.rotation.y = t * 2;
+
+                    // marca de misión: "!" disponible, "✔" lista; si no hay misión pendiente, el rombo de siempre
+                    const qs = world.quests ? world.quests.markerState(npcId) : null;
+                    const wanted = qs === 'available' ? 'available' : qs === 'ready' ? 'ready' : null;
+                    if (wanted && wanted !== iconKind) { icon.material = questIcon(wanted); iconKind = wanted; }
+                    icon.visible = !!wanted;
+                    marker.visible = !wanted;
+                    if (wanted) icon.position.y = 4.35 + Math.sin(t * 4 + x) * 0.2;
                     tag.visible = dist < 15;
                     const k = Math.max(0.42, Math.min(1.05, dist / 10));   // más chico cuando estás cerca
                     tag.scale.set(4.6 * k, 1.15 * k, 1);
@@ -344,6 +377,20 @@ export class World {
                 return p.root;
             },
 
+            /** Objeto de misión: solo aparece mientras la misión está activa y no se ha recogido. */
+            pickup(questId, index, kind, x, z) {
+                const p = createPickup(kind);
+                p.root.position.set(x, 0, z);
+                p.root.userData = { type: 'pickup', questId, index };
+                const q = world.quests;
+                p.root.visible = !!(q && q.isActive(questId) && !q.isPicked(questId, index));
+                cur.group.add(p.root);
+                cur.pickups.push(p.root);
+                ctx.avoid.push({ x, z, r: 3 });
+                cur.dynamics.push((t) => { if (p.root.visible) p.update(t); });
+                return p.root;
+            },
+
             /** Letrero informativo (se lee con E). */
             sign({ title, description, x, z, rot = 0, subtitle = 'E: leer' }) {
                 const s = createSignboard({ title, subtitle, description });
@@ -381,6 +428,16 @@ export class World {
             addToScene(obj) { cur.group.add(obj); return obj; }
         };
         return ctx;
+    }
+
+    /** Muestra u oculta los objetos de misión según el estado de las misiones. */
+    syncQuestObjects() {
+        const q = this.quests;
+        if (!this.current || !q) return;
+        for (const p of this.current.pickups) {
+            const { questId, index } = p.userData;
+            p.visible = q.isActive(questId) && !q.isPicked(questId, index);
+        }
     }
 
     /** Se llama cada frame. player = {x, z}. */

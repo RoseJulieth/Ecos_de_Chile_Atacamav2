@@ -78,6 +78,14 @@ export class Minimap {
             }
         }
 
+        // objetos de misión activos
+        for (const p of cur.pickups) {
+            if (!p.visible) continue;
+            ctx.fillStyle = '#7fe9ff'; ctx.strokeStyle = '#04384a'; ctx.lineWidth = 0.8 / k;
+            ctx.beginPath(); ctx.moveTo(p.position.x, p.position.z - 3); ctx.lineTo(p.position.x + 2.3, p.position.z);
+            ctx.lineTo(p.position.x, p.position.z + 3); ctx.lineTo(p.position.x - 2.3, p.position.z); ctx.closePath(); ctx.fill(); ctx.stroke();
+        }
+
         // NPC
         ctx.fillStyle = '#fff'; ctx.strokeStyle = '#3a2418'; ctx.lineWidth = 0.7 / k;
         for (const n of cur.npcs) {

@@ -522,6 +522,79 @@ export function createCloudLayer({ count = 14, minDist = 55, maxDist = 130, minY
 }
 
 // =====================================================================
+// OBJETOS DE MISIÓN (se recogen caminando hasta ellos)
+// =====================================================================
+const PICKUP_GLOW = { municion: 0xffd54a, tiesto: 0xffa86b, mineral: 0xbfe0ff, semilla: 0x9bf08a, concha: 0xffd6e8 };
+
+function pickupBody(kind) {
+    const g = new THREE.Group();
+    switch (kind) {
+        case 'municion':
+            g.add(box(0.62, 0.38, 0.42, 0x8a6a45, [0, 0, 0]));
+            g.add(box(0.66, 0.1, 0.46, 0x5b4128, [0, 0.2, 0]));
+            g.add(box(0.1, 0.4, 0.46, 0xd4a017, [-0.2, 0, 0]));
+            g.add(box(0.1, 0.4, 0.46, 0xd4a017, [0.2, 0, 0]));
+            for (let i = 0; i < 3; i++) g.add(cyl(0.05, 0.05, 0.22, 0xd4a017, [-0.15 + i * 0.15, 0.36, 0], 5));
+            break;
+        case 'tiesto':
+            g.add(piece(new THREE.ConeGeometry(0.3, 0.42, 4), 0xc4552b, { scale: [1.3, 0.45, 1], rot: [0.3, 0.4, 0.2] }));
+            g.add(piece(new THREE.ConeGeometry(0.2, 0.3, 4), 0xb4491f, { pos: [0.28, -0.04, 0.12], scale: [1.2, 0.4, 1], rot: [-0.2, 1.2, 0.1] }));
+            g.add(box(0.36, 0.02, 0.07, 0xf5f2ea, [-0.02, 0.1, 0.03], [0.3, 0.4, 0.2]));
+            g.add(box(0.28, 0.02, 0.06, 0x1d140b, [-0.02, 0.1, -0.06], [0.3, 0.4, 0.2]));
+            break;
+        case 'mineral':
+            g.add(piece(new THREE.DodecahedronGeometry(0.3, 0), 0x77706a, { scale: [1.1, 0.8, 1], pos: [0, -0.05, 0] }));
+            g.add(piece(new THREE.OctahedronGeometry(0.2, 0), 0xcfe3f5, { pos: [0.1, 0.2, 0.05] }));
+            g.add(piece(new THREE.OctahedronGeometry(0.14, 0), 0xe6eef7, { pos: [-0.14, 0.17, -0.05] }));
+            break;
+        case 'semilla':
+            g.add(piece(new THREE.SphereGeometry(0.22, 7, 5), 0x6db04a, { scale: [1, 1.2, 1] }));
+            g.add(piece(new THREE.ConeGeometry(0.1, 0.3, 5), 0xff7bc0, { pos: [0, 0.34, 0] }));
+            g.add(piece(new THREE.CylinderGeometry(0.02, 0.02, 0.2, 4), 0x4f9a4a, { pos: [0.05, 0.5, 0], rot: [0, 0, -0.4] }));
+            break;
+        default: // concha
+            g.add(piece(new THREE.ConeGeometry(0.34, 0.2, 8), 0xf3cdb5, { rot: [0, 0, 0], scale: [1, 1, 1], pos: [0, 0, 0] }));
+            for (let i = 0; i < 5; i++) {
+                const a = (i / 4 - 0.5) * 1.6;
+                g.add(box(0.03, 0.04, 0.32, 0xe8a98a, [Math.sin(a) * 0.17, 0.1, Math.cos(a) * 0.1 - 0.02], [0, a, 0]));
+            }
+            g.add(piece(new THREE.SphereGeometry(0.08, 5, 4), 0xe58f7a, { pos: [0, 0.02, -0.28] }));
+            g.rotation.x = 0.5;
+    }
+    return bake(g);
+}
+
+/** Objeto brillante que flota y gira; se recoge al caminar hacia él. */
+export function createPickup(kind) {
+    const root = new THREE.Group();
+    const floater = new THREE.Group();
+    floater.position.y = 1.0;
+    const body = pickupBody(kind);
+    body.scale.setScalar(1.35);
+    floater.add(body);
+    const color = PICKUP_GLOW[kind] ?? 0xffffff;
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(0.85, 10, 8), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.2, depthWrite: false }));
+    floater.add(glow);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.03, 4, 16), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 }));
+    ring.rotation.x = Math.PI / 2;
+    floater.add(ring);
+    root.add(floater);
+    const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.45, 10), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.04;
+    root.add(shadow);
+
+    return {
+        root,
+        update(t) {
+            floater.position.y = 1.0 + Math.sin(t * 2.2) * 0.14;
+            body.rotation.y = t * 1.5;
+            ring.rotation.z = t * 2;
+            glow.scale.setScalar(1 + Math.sin(t * 3) * 0.08);
+        }
+    };
+}
+
+// =====================================================================
 // PORTAL
 // =====================================================================
 function labelSprite(text, color) {

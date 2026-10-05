@@ -11,6 +11,8 @@ const faceTo = (x, z, tx = 0, tz = 0) => Math.atan2(tx - x, tz - z);
 
 const GOLD = 0xffd54a;
 
+const placePickups = (ctx, questId, kind, list) => list.forEach(([x, z], i) => ctx.pickup(questId, i, kind, x, z));
+
 /** Portal de regreso a Copiapó, siempre atrás del punto de partida (en +Z) mirando al jugador. */
 function backPortal(ctx) {
     ctx.portal({ label: 'Volver a Copiapó', target: 'copiapo', x: 0, z: 35, face: Math.PI, color: GOLD });
@@ -166,6 +168,7 @@ const diaguita = {
             description: 'Pueblo originario del Norte Chico de Chile (1000-1540 d.C.), famoso por su cerámica de diseños geométricos en rojo, blanco y negro. Sus jarros-pato combinaban función y arte.'
         });
 
+        placePickups(ctx, 'q_diaguita', 'tiesto', [[-18, 6], [19, 8], [0, -22]]);
         ctx.avoid.push({ x: 0, z: -2, r: 17 }, { x: 0, z: 20, r: 6 });
         ctx.scatter(12, () => createCactus(), { rMin: 20, collide: 0.7, minGap: 4 });
         ctx.scatter(9, () => createRockCluster(), { rMin: 20, collide: 1.8, minGap: 5 });
@@ -245,6 +248,7 @@ const batallon = {
             description: 'Apodados "Los Curitas" por sus uniformes negros, los soldados del Batallón Atacama demostraron un valor inquebrantable en la Batalla de Tacna, el 26 de mayo de 1880, durante la Guerra del Pacífico.'
         });
 
+        placePickups(ctx, 'q_batallon', 'municion', [[-3, -21], [20, -10], [-20, 6]]);
         ctx.avoid.push({ x: 0, z: -6, r: 14 }, { x: 0, z: 20, r: 6 });
         ctx.scatter(8, () => createCactus(), { rMin: 22, collide: 0.7, minGap: 4 });
         ctx.scatter(8, () => createRockCluster(), { rMin: 20, collide: 1.8, minGap: 5 });
@@ -286,6 +290,7 @@ const chanarcillo = {
             description: 'En 1832 el arriero Juan Godoy descubrió plata en Chañarcillo. La riqueza del mineral transformó a Copiapó en la capital minera de Chile y ayudó a financiar el ferrocarril.'
         });
 
+        placePickups(ctx, 'q_chanarcillo', 'mineral', [[-10, -25], [12, -8], [-15, 2]]);
         ctx.avoid.push({ x: 0, z: -18, r: 16 }, { x: 0, z: 20, r: 6 });
         ctx.scatter(10, () => B.createSilverRock(range(1, 1.6)), { rMin: 12, collide: 1.3, minGap: 4 });
         ctx.scatter(6, () => createCactus(), { rMin: 22, collide: 0.7, minGap: 4 });
@@ -327,6 +332,7 @@ const florido = {
             description: 'Ocurre cada 5 a 7 años, cuando las lluvias del fenómeno de El Niño despiertan semillas que han permanecido latentes durante décadas. Aparecen más de 200 especies de flores.'
         });
 
+        placePickups(ctx, 'q_semillas', 'semilla', [[-24, -6], [18, -20], [-8, -26]]);
         ctx.avoid.push({ x: 0, z: 21, r: 7 });
         // mar de flores: parches grandes por todo el valle (sin colisión, se camina entre ellas)
         const patches = ctx.scatter(34, () => createFlowerPatch({ count: 11, radius: 4.2 }), { rMin: 5, rMax: 42, minGap: 5.5, clear: 4.5 });
@@ -398,6 +404,7 @@ const bahia = {
             description: 'Recibió su nombre en 1687, cuando el corsario inglés Edward Davis ancló aquí. Antes, los changos (pescadores indígenas) ya conocían estas aguas. Hoy es famosa por sus playas de arena blanca y aguas turquesas.'
         });
 
+        placePickups(ctx, 'q_conchas', 'concha', [[-12, -12], [6, -8], [22, -14]]);
         ctx.avoid.push({ x: 0, z: 20, r: 6 });
         ctx.scatter(7, () => createRock(range(0.8, 1.5)), { rMin: 14, collide: 1.2, minGap: 4 });
 

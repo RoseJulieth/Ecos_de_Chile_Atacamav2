@@ -12,6 +12,7 @@ import { World } from './World.js';
 import { ALL_SCENES } from './scenes.js';
 import { PlayerController } from './PlayerController.js';
 import { Minimap } from './Minimap.js';
+import { Quests } from './Quests.js';
 
 // ========== CONFIGURACIÓN INICIAL ==========
 const scene = new THREE.Scene();
@@ -32,6 +33,7 @@ const TOTAL_FRAGMENTS = FRAGMENTS.length;
 let inventory, gameState, audioManager, world, player, cameraController, uiManager, interactionSystem;
 let currentSceneId = 'copiapo';
 let minimap = null;
+let quests = null;
 let transitioning = false;
 let menuOrbit = 0;
 
@@ -59,6 +61,11 @@ async function initGame() {
     world.onSighting = registerSighting;
     ALL_SCENES.forEach((d) => world.register(d));
     inventory.load(FRAGMENTS);
+
+    // misiones de los NPC
+    quests = new Quests(inventory);
+    world.quests = quests;
+    quests.onChange = () => { world.syncQuestObjects(); updateTracker(); };
 
     uiManager = new UIManager(FRAGMENTS);
     interactionSystem = new InteractionSystem(uiManager);
@@ -275,6 +282,7 @@ function refreshProgressUI() {
     FRAGMENTS.forEach((f) => uiManager.updateFragmentUI(f.id, inventory.hasFragment(f.id)));
     uiManager.updateCounter(inventory.getFragmentCount(), TOTAL_FRAGMENTS);
     uiManager.updateInventoryPanel(inventory.getInventoryData());
+    updateTracker();
 }
 
 function updateSceneAudio(delta) {
@@ -405,6 +413,19 @@ function animate() {
         updateSceneAudio(delta);
         minimap.update(cur, { x: pp.x, z: pp.z, heading: player.root.rotation.y }, cameraController.getAngle(), inventory, world.time);
 
+        // objetos de misión: se recogen al caminar sobre ellos
+        for (const p of cur.pickups) {
+            if (!p.visible || Math.hypot(pp.x - p.position.x, pp.z - p.position.z) > 1.8) continue;
+            p.visible = false;
+            const { questId, index } = p.userData;
+            const prog = quests.collect(questId, index);
+            const q = quests.byId.get(questId);
+            if (!prog) continue;
+            playSfx('collect_fragment');
+            if (quests.stateOf(questId) === 'ready') notifyQuestReady(q);
+            else uiManager.showNotification(q.goal.label, `${prog.have} de ${prog.need}`, 'Objeto recogido');
+        }
+
         // portales: se cruzan caminando hacia el centro del arco
         if (!transitioning) {
             for (const p of cur.portals) {
@@ -448,6 +469,26 @@ function registerSighting(species) {
     uiManager.showNotification(`${species.icon} ${species.name}`, species.info, '¡Nuevo avistamiento!');
     uiManager.updateInventoryPanel(inventory.getInventoryData());
     playSfx('notification');
+    quests.refresh().forEach((q) => setTimeout(() => notifyQuestReady(q), 5300));
+}
+
+function notifyQuestReady(q) {
+    const npc = world.npcData.get(q.npc);
+    uiManager.showNotification(q.title, `Objetivo cumplido. Vuelve a hablar con ${npc ? npc.name.split(' - ')[0] : 'el NPC'} para recibir tu recompensa.`, '¡Misión lista!');
+    playSfx('notification');
+}
+
+// ========== PANEL DE MISIONES ==========
+function updateTracker() {
+    const el = document.getElementById('quest-tracker');
+    if (!el || !quests) return;
+    el.innerHTML = quests.activeQuests().map((q) => {
+        const p = quests.progress(q);
+        const ready = quests.stateOf(q.id) === 'ready';
+        const npc = world.npcData.get(q.npc);
+        const who = npc ? npc.name.split(' - ')[0] : 'el NPC';
+        return `<div class="chip ${ready ? 'ready' : ''}"><b>📜 ${q.title}</b><small>${ready ? '✅ Vuelve con ' + who : `${q.goal.label}: ${p.have}/${p.need}`}</small></div>`;
+    }).join('');
 }
 
 // ========== INTERACCIÓN ==========
@@ -473,6 +514,29 @@ function collectFragment(obj) {
     }
 }
 
+/** Agrega al diálogo del NPC su misión: la ofrece, muestra el avance o entrega la recompensa. */
+function withQuest(data) {
+    const q = quests.current(data.npc_id);
+    if (!q) {
+        const had = quests.forNpc(data.npc_id).length > 0;
+        return had ? { ...data, questHtml: '<div style="margin-top:14px;color:#58e07a;text-align:center">✅ Ya completaste la misión de este personaje.</div>' } : data;
+    }
+    let html;
+    const wasNew = quests.stateOf(q.id) === 'new';
+    if (wasNew) quests.accept(q.id);
+    if (quests.stateOf(q.id) === 'ready') {
+        const reward = quests.complete(q.id);
+        html = quests.dialogHtml(q, false, reward);
+        playSfx('collect_fragment');
+        uiManager.showNotification(`${reward.icon} ${reward.name}`, reward.info, '¡Misión completada!');
+        uiManager.updateInventoryPanel(inventory.getInventoryData());
+        autoSave();
+    } else {
+        html = quests.dialogHtml(q, wasNew);
+    }
+    return { ...data, questHtml: html };
+}
+
 function handleInteraction() {
     if (interactionSystem.isInDialog()) {
         closeDialogWithSound();
@@ -484,7 +548,7 @@ function handleInteraction() {
     if (interaction.type === 'fragment') {
         collectFragment(interaction.object);
     } else if (interaction.type === 'npc') {
-        openDialogWithSound(interaction.data);
+        openDialogWithSound(withQuest(interaction.data));
     } else if (interaction.type === 'info_sign') {
         openDialogWithSound({
             name: interaction.data.name,

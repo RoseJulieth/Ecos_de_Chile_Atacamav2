@@ -393,6 +393,8 @@ export class UIManager {
             <div style="line-height: 1.6; text-align: justify; margin: 20px 0; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; border-left: 4px solid ${typeColors[npcData.dialog_type] || '#FFD700'};">
                 ${npcData.historical_cue}
             </div>
+
+            ${npcData.questHtml || ''}
             
             ${videoSection}
             

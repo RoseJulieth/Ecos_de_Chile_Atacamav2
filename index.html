@@ -592,6 +592,33 @@
         @media (max-height: 640px) {
             #minimap { width: 150px; height: 150px; }
         }
+
+        /* ===== Panel de misiones ===== */
+        #quest-tracker {
+            position: absolute;
+            left: 14px;
+            top: 14px;
+            max-width: 330px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            color: #fff6dc;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        #quest-tracker .chip {
+            padding: 6px 12px;
+            background: rgba(20, 12, 6, 0.78);
+            border: 2px solid #d4a017;
+            border-radius: 10px;
+            line-height: 1.35;
+            text-shadow: 0 1px 2px #000;
+        }
+
+        #quest-tracker .chip.ready { border-color: #58e07a; }
+        #quest-tracker .chip small { color: #f2c96b; display: block; }
+        #quest-tracker .chip b { color: #FFD700; }
     </style>
     <script type="importmap">
         {
@@ -659,6 +686,7 @@
 
         <!-- HUD del Juego -->
         <div id="hud">
+            <div id="quest-tracker"></div>
             <canvas id="minimap" width="380" height="380"></canvas>
             <div id="inventory-panel">
                 <h3 style="margin: 0 0 10px 0; text-align: center;">📜 Fragmentos Históricos</h3>
