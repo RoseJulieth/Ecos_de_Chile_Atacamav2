@@ -2,7 +2,7 @@
 // Casi todo sale como una malla "horneada" (sin contorno): la escena junta todo el decorado estático en una
 // sola malla (mergeBaked) y le pone un único contorno. Lo que se mueve (portales, reliquias, nubes) va aparte.
 import * as THREE from 'three';
-import { piece, bake, getToonMaterial, createFlower } from '../ProceduralAssets.js';
+import { piece, bake, pick, getToonMaterial, createFlower } from '../ProceduralAssets.js';
 
 const group = (...pieces) => { const g = new THREE.Group(); pieces.forEach(p => g.add(p)); return g; };
 const box = (w, h, d, color, pos, rot) => piece(new THREE.BoxGeometry(w, h, d), color, { pos, rot });
@@ -98,6 +98,46 @@ export function createWell() {
         box(0.18, 2.2, 0.18, 0x6b4a2e, [-1.0, 1.9, 0]), box(0.18, 2.2, 0.18, 0x6b4a2e, [1.0, 1.9, 0]),
         piece(new THREE.ConeGeometry(1.7, 0.9, 4), 0xb8553a, { pos: [0, 3.4, 0], rot: [0, Math.PI / 4, 0] })
     ));
+}
+
+// =====================================================================
+// ÁRBOLES Y PLAZA (Copiapó)
+// =====================================================================
+const LEAVES = [0x4f9a4a, 0x5fae55, 0x3f8a44, 0x6dbb5d];
+
+/** Árbol de plaza: tronco y copa de varias esferas facetadas. */
+export function createTree({ height = 3.2, size = 1, leaf = null } = {}) {
+    const g = new THREE.Group();
+    const color = leaf ?? pick(LEAVES);
+    g.add(cyl(0.28 * size, 0.42 * size, height, 0x7a5535, [0, height / 2, 0], 6));
+    const blobs = [[0, 0, 0, 2.3], [1.3, -0.5, 0.4, 1.7], [-1.2, -0.4, -0.5, 1.8], [0.2, 0.9, -0.8, 1.5], [-0.3, 0.3, 1.2, 1.5]];
+    blobs.forEach(([x, y, z, r], i) => g.add(piece(new THREE.IcosahedronGeometry(r * size, 0), i % 2 ? color : LEAVES[(i + 1) % LEAVES.length], {
+        pos: [x * size, height + 1.2 * size + y * size, z * size]
+    })));
+    return bake(g);
+}
+
+export function createBench() {
+    const g = new THREE.Group();
+    g.add(box(2.2, 0.14, 0.7, 0x8a6a45, [0, 0.55, 0]));
+    g.add(box(2.2, 0.5, 0.1, 0x8a6a45, [0, 1.0, -0.3], [-0.15, 0, 0]));
+    for (const x of [-0.9, 0.9]) g.add(box(0.12, 0.55, 0.6, 0x2b2b30, [x, 0.27, 0]));
+    return bake(g);
+}
+
+/** Arriate de flores en un círculo (césped con flores de colores). */
+export function createFlowerBed({ radius = 1.8 } = {}) {
+    const g = new THREE.Group();
+    g.add(cyl(radius, radius + 0.1, 0.3, 0x9a9488, [0, 0.15, 0], 10));
+    g.add(cyl(radius - 0.2, radius - 0.2, 0.34, 0x6a4a30, [0, 0.17, 0], 10));
+    const cols = [0xe8372c, 0xf2c200, 0xff7bc0, 0xf5f2ea, 0x9b4fd6];
+    for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2 + (i % 2) * 0.3;
+        const d = (i % 3) * (radius * 0.28) + radius * 0.25;
+        g.add(piece(new THREE.IcosahedronGeometry(0.22, 0), cols[i % cols.length], { pos: [Math.cos(a) * d, 0.52, Math.sin(a) * d] }));
+        g.add(piece(new THREE.ConeGeometry(0.2, 0.3, 4), 0x4f9a4a, { pos: [Math.cos(a) * d, 0.4, Math.sin(a) * d] }));
+    }
+    return bake(g);
 }
 
 // =====================================================================

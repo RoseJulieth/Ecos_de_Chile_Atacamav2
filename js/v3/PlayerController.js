@@ -78,8 +78,11 @@ export class PlayerController {
             const r = Math.hypot(nx, nz);
             if (r > maxR) { nx *= maxR / r; nz *= maxR / r; }
 
+            // Red de seguridad: si por algún error el jugador apareció dentro de un obstáculo, puede salir caminando
+            const trapped = colliders.hits(pos.x, pos.z, PLAYER_RADIUS);
+
             // colisión con deslizamiento: si el paso completo choca, se prueba cada eje por separado
-            if (!colliders.hits(nx, nz, PLAYER_RADIUS)) {
+            if (trapped || !colliders.hits(nx, nz, PLAYER_RADIUS)) {
                 pos.x = nx; pos.z = nz; moved = true;
             } else if (!colliders.hits(nx, pos.z, PLAYER_RADIUS)) {
                 pos.x = nx; moved = true;

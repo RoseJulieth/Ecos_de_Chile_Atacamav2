@@ -578,6 +578,20 @@
             margin: 6px 0 0;
             font-size: clamp(14px, 2vw, 20px);
         }
+
+        /* ===== Minimapa ===== */
+        #minimap {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            width: 190px;
+            height: 190px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
+        }
+
+        @media (max-height: 640px) {
+            #minimap { width: 150px; height: 150px; }
+        }
     </style>
     <script type="importmap">
         {
@@ -645,6 +659,7 @@
 
         <!-- HUD del Juego -->
         <div id="hud">
+            <canvas id="minimap" width="380" height="380"></canvas>
             <div id="inventory-panel">
                 <h3 style="margin: 0 0 10px 0; text-align: center;">📜 Fragmentos Históricos</h3>
                 <div id="list-fragments"></div>
@@ -948,6 +963,7 @@
                 <div><span class="tecla">Mouse</span> Mover la cámara (haz clic primero)</div>
                 <div><span class="tecla">E</span> Hablar / recoger fragmento</div>
                 <div><span class="tecla">I</span> Abrir el inventario</div>
+                <div><span class="tecla">M</span> Mostrar / ocultar el mapa</div>
                 <div><span class="tecla">Esc</span> Pausa y volumen</div>
             </div>
             <button id="tutorial-ok">¡Entendido, a explorar!</button>

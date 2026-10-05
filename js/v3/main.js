@@ -11,6 +11,7 @@ import { Tutorial } from '../Tutorial.js';
 import { World } from './World.js';
 import { ALL_SCENES } from './scenes.js';
 import { PlayerController } from './PlayerController.js';
+import { Minimap } from './Minimap.js';
 
 // ========== CONFIGURACIÓN INICIAL ==========
 const scene = new THREE.Scene();
@@ -30,6 +31,7 @@ const TOTAL_FRAGMENTS = FRAGMENTS.length;
 // ========== SISTEMAS DEL JUEGO ==========
 let inventory, gameState, audioManager, world, player, cameraController, uiManager, interactionSystem;
 let currentSceneId = 'copiapo';
+let minimap = null;
 let transitioning = false;
 let menuOrbit = 0;
 
@@ -60,6 +62,7 @@ async function initGame() {
     uiManager = new UIManager(FRAGMENTS);
     interactionSystem = new InteractionSystem(uiManager);
     interactionSystem.interactionRange = 4.5;
+    minimap = new Minimap(document.getElementById('minimap'));
 
     loading.set(0.7, 'Vistiendo al explorador...');
     player = new PlayerController(scene);
@@ -361,6 +364,7 @@ const perfEl = document.createElement('div');
 perfEl.style.cssText = 'position:fixed;left:10px;top:10px;z-index:9999;display:none;padding:6px 10px;background:rgba(0,0,0,.7);color:#0f0;font:12px monospace;border-radius:4px;pointer-events:none';
 document.body.appendChild(perfEl);
 window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'm' && minimap && gameState.isPlaying() && !tutorial.isOpen()) minimap.toggle();
     if (e.key === 'F3') { e.preventDefault(); perfEl.style.display = perfEl.style.display === 'none' ? 'block' : 'none'; }
 });
 let perfFrames = 0, perfLast = performance.now();
@@ -392,11 +396,13 @@ function animate() {
         const canMove = !interactionSystem.isInDialog() && !tutorial.isOpen() && !transitioning;
         player.update(keys, cameraController.getAngle(), delta, canMove, cur.colliders, cur.radius);
         cameraController.update(player.getPosition(), []);
+        keepCameraClear(cur, delta);
 
         const pp = player.getPosition();
         world.update(delta, pp);
         interactionSystem.update(pp, cur.interactables);
         updateSceneAudio(delta);
+        minimap.update(cur, { x: pp.x, z: pp.z, heading: player.root.rotation.y }, cameraController.getAngle(), inventory, world.time);
 
         // portales: se cruzan caminando hacia el centro del arco
         if (!transitioning) {
@@ -416,6 +422,21 @@ function animate() {
     }
 
     renderer.render(scene, camera);
+}
+
+// La cámara se acerca al jugador cuando hay algo alto (casa, árbol, carpa) entre ambos
+let camReach = 1;
+function keepCameraClear(cur, dt) {
+    const head = player.getPosition();
+    const hy = head.y + cameraController.targetHeight;
+    const dx = camera.position.x - head.x, dy = camera.position.y - hy, dz = camera.position.z - head.z;
+    let safe = 1;
+    for (let t = 0.12; t <= 1.0001; t += 0.04) {
+        if (cur.colliders.hitsCam(head.x + dx * t, head.z + dz * t, 0.7)) { safe = Math.max(0.4, t - 0.08); break; }
+    }
+    camReach += (safe - camReach) * Math.min(1, dt * (safe < camReach ? 16 : 3));
+    camera.position.set(head.x + dx * camReach, hy + dy * camReach, head.z + dz * camReach);
+    camera.lookAt(head.x, hy, head.z);
 }
 
 // ========== INTERACCIÓN ==========

@@ -37,21 +37,33 @@ for (const p of HUB_PORTALS) {
     hubSpawns[p.target] = { x: pos.x, z: pos.z, heading: [-pos.x, -pos.z] };
 }
 
+const GRASS = 0x7fb069;
+
 const copiapo = {
     id: 'copiapo', name: 'Copiapó', subtitle: 'La capital minera de Atacama · elige un portal',
     seed: 11, radius: 42,
-    sky: [0x5aa6ea, 0xd8edf7], ground: 0xd2a06a, hillColors: WARM_HILLS,
-    audio: { wind: 0.5, waves: 0 },
+    sky: [0x5aa6ea, 0xd8edf7], ground: 0xcdb27e, hillColors: WARM_HILLS,
+    audio: { wind: 0.4, waves: 0 },
     spawn: { x: 0, z: 14, heading: [0, -1] },
     spawns: hubSpawns,
     build(ctx) {
-        // plaza
+        // plaza con césped, arriates y fuente
+        ctx.patch(0, 0, 13, GRASS);
         ctx.patch(0, 0, 11, 0xdcceb0);
         ctx.patch(0, 0, 8.6, 0xc9b896);
         ctx.place(B.createFountain(), 0, 0, { collide: 3.6 });
         for (let i = 0; i < 6; i++) {
             const p = polar(i * 60 + 30, 10.2);
             ctx.place(B.createLamp(), p.x, p.z, { collide: 0.4 });
+        }
+        for (let i = 0; i < 4; i++) {
+            const p = polar(i * 90 + 45, 6.4);
+            ctx.place(B.createFlowerBed({ radius: 1.5 }), p.x, p.z, { collide: 1.7 });
+        }
+        for (let i = 0; i < 6; i++) {
+            const p = polar(i * 60, 9.2);
+            if (i === 0 || i === 3) continue; // dejar libres los accesos principales
+            ctx.place(B.createBench(), p.x, p.z, { rot: faceTo(p.x, p.z), collide: 1.2 });
         }
 
         // caminos hacia cada portal
@@ -60,32 +72,45 @@ const copiapo = {
             ctx.path(a.x, a.z, b.x, b.z, 3.6, 0xdcceb0);
             ctx.portal({ label: hp.label, target: hp.target, x: polar(hp.phi, HUB_PORTAL_R).x, z: polar(hp.phi, HUB_PORTAL_R).z, color: hp.color });
         }
+        // árboles de plaza (Copiapó es un oasis verde en el desierto): anillo alrededor de la plaza
+        for (let i = 0; i < 22; i++) {
+            const phi = i * (360 / 22) + 8;
+            const p = polar(phi, 15.5 + (i % 2) * 2);
+            if (Math.abs(phi - 180) < 34) continue;          // franja de la cámara al empezar (detrás del jugador)
+            if (ctx.nearPath(p.x, p.z, 2.2)) continue;
+            ctx.place(B.createTree({ height: 2.8 + (i % 3) * 0.5, size: 0.9 + (i % 4) * 0.1 }), p.x, p.z, { collide: 0.7, rot: i, camBlock: 2.4 });
+        }
 
-        // iglesia y casas alrededor (la puerta mira a la plaza)
+        // iglesia y casas, solo detrás de la plaza (así no invaden los caminos hacia los portales)
         const church = polar(215, 31);
         ctx.placeBox(B.createChurch(), church.x, church.z, 9, 14, { rot: faceTo(church.x, church.z) });
         const walls = B.WALLS;
-        [105, 135, 165, 250, 280, 310].forEach((phi, i) => {
-            const p = polar(phi, 27 + (i % 2) * 3);
+        [100, 124, 148, 172, 255].forEach((phi, i) => {
+            const p = polar(phi, 28 + (i % 2) * 2.5);
             ctx.placeBox(B.createHouse({ wall: walls[i % walls.length], roofType: i % 2 ? 'flat' : 'pyramid' }), p.x, p.z, 7, 6, { rot: faceTo(p.x, p.z) });
+            // un árbol junto a cada casa
+            const t = polar(phi - 7, 24);
+            ctx.place(B.createTree({ height: 3, size: 0.95 }), t.x, t.z, { collide: 0.7, rot: i, camBlock: 2.4 });
         });
-        const w = polar(190, 24);
+        const w = polar(192, 22);
         ctx.place(B.createWell(), w.x, w.z, { collide: 1.5 });
 
         // gente
-        ctx.npc('npc_002', -6, -5, faceTo(-6, -5, 0, 10));
-        ctx.npc('npc_008', 8, 5, faceTo(8, 5, 0, 10));
-        ctx.npc('npc_009', church.x + 6, church.z - 9, faceTo(church.x + 6, church.z - 9, 0, 10));
+        ctx.npc('npc_002', -6, -4.5, faceTo(-6, -4.5, 0, 10));
+        ctx.npc('npc_008', 8.5, 4.5, faceTo(8.5, 4.5, 0, 10));
+        const cn = { x: church.x + 5, z: church.z - 11 };
+        ctx.npc('npc_009', cn.x, cn.z, faceTo(cn.x, cn.z, 0, 10));
 
         ctx.sign({
             title: 'Copiapó', x: 5, z: 10, rot: 0,
             description: 'Copiapó es la capital de la Región de Atacama. En 1832 el descubrimiento de plata en Chañarcillo la convirtió en capital minera, y en 1851 llegó el ferrocarril que la unió con Caldera, uno de los primeros de Sudamérica. Elige un portal para viajar por Atacama y encontrar los 5 fragmentos históricos.'
         });
 
-        // desierto alrededor
-        ctx.avoid.push({ x: 0, z: 0, r: 14 }, { x: 0, z: 14, r: 5 });
-        ctx.scatter(10, () => createCactus(), { rMin: 14, collide: 0.7, minGap: 4 });
-        ctx.scatter(8, () => createRockCluster(), { rMin: 14, collide: 1.8, minGap: 5 });
+        // un poco de desierto en los bordes
+        ctx.avoid.push({ x: 0, z: 0, r: 14 }, { x: 0, z: 14, r: 5 }, { x: 0, z: 25, r: 7 }); // 25 = donde queda la cámara al empezar
+        ctx.scatter(5, () => createCactus(), { rMin: 20, collide: 0.7, minGap: 6 });
+        ctx.scatter(4, () => createRockCluster(), { rMin: 22, collide: 1.8, minGap: 7 });
+        ctx.scatter(8, () => B.createTree({ height: 2.6, size: 0.9 }), { rMin: 17, collide: 0.7, minGap: 5, camBlock: 2.4 });
     }
 };
 
@@ -109,7 +134,7 @@ const diaguita = {
             const x = 15 * Math.sin(toRad(phi)), z = -2 + 15 * Math.cos(toRad(phi));
             const rot = toRad(phi); // el muro va tangente al círculo
             ctx.place(B.createStoneWall(8, 1.8), x, z, { rot });
-            ctx.colliders.rect(x, z, 8, 1.1, rot);
+            ctx.colliders.rect(x, z, 8, 1.1, rot, false);   // muro bajo: no tapa a la cámara
         }
         ctx.place(B.createStele(), -5.5, 17, { collide: 1.0 });
         ctx.place(B.createStele(), 5.5, 17, { collide: 1.0 });
@@ -176,7 +201,7 @@ const batallon = {
         // bandera central y carpas
         ctx.place(B.createFlag(), 0, -8, { collide: 0.6 });
         [[-16, -4, 90], [16, -4, -90], [-22, -16, 60], [22, -16, -60], [-9, -24, 20], [9, -24, -20]].forEach(([x, z], i) => {
-            ctx.place(B.createTent({ color: i % 2 ? 0xd9c9a0 : 0xc9b88a }), x, z, { rot: faceTo(x, z, 0, -4), collide: 2.6 });
+            ctx.place(B.createTent({ color: i % 2 ? 0xd9c9a0 : 0xc9b88a }), x, z, { rot: faceTo(x, z, 0, -4), collide: 2.6, camBlock: 2.4 });
         });
         // artillería y trincheras
         ctx.place(B.createCannon(), -9, -1, { rot: Math.PI, collide: 1.3 });
@@ -268,7 +293,7 @@ const florido = {
         ctx.npc('npc_010', 8, 9, faceTo(8, 9, 0, 20));
         ctx.npc('npc_012', -16, 9, faceTo(-16, 9, 0, 20));
         ctx.place(telescope(), -19, 7, { rot: 0.8, collide: 0.9 });
-        ctx.place(B.createTent({ color: 0xf0e6d2 }), 14, 11, { rot: faceTo(14, 11, 0, 20), collide: 2.6 });
+        ctx.place(B.createTent({ color: 0xf0e6d2 }), 14, 11, { rot: faceTo(14, 11, 0, 20), collide: 2.6, camBlock: 2.4 });
         ctx.sign({
             title: 'Desierto Florido', x: -6, z: 22, rot: 0,
             description: 'Ocurre cada 5 a 7 años, cuando las lluvias del fenómeno de El Niño despiertan semillas que han permanecido latentes durante décadas. Aparecen más de 200 especies de flores.'
@@ -314,7 +339,7 @@ const bahia = {
             f.position.z = shoreZ - 0.5 - k * (3 + i * 2.5);
             f.scale.y = 0.6 + k * 0.8;
         }));
-        ctx.colliders.rect(0, shoreZ - 100, 800, 200); // no se puede entrar al agua
+        ctx.colliders.rect(0, shoreZ - 100, 800, 200, 0, false); // no se puede entrar al agua
 
         // bote flotando
         const floating = B.createBoat({ hull: 0xf5f2ea, stripe: 0xe8372c });

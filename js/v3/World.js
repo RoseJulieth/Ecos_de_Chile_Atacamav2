@@ -9,10 +9,27 @@ const faceTo = (x, z, tx = 0, tz = 0) => Math.atan2(tx - x, tz - z);
 // ---------- Colisiones ----------
 export class Colliders {
     constructor() { this.list = []; }
-    circle(x, z, r) { this.list.push({ t: 'c', x, z, r }); }
-    /** Rectángulo de ancho w (x local) y fondo d (z local), girado `rot` radianes. */
-    rect(x, z, w, d, rot = 0) {
-        this.list.push({ t: 'r', x, z, hw: w / 2, hd: d / 2, cos: Math.cos(rot), sin: Math.sin(rot) });
+    /** r = radio para caminar; cam = radio con el que tapa a la cámara (0 = objeto bajo, no la tapa). */
+    circle(x, z, r, cam = 0) { this.list.push({ t: 'c', x, z, r, cam }); }
+    /** Rectángulo de ancho w (x local) y fondo d (z local), girado `rot` radianes. cam=false para muros bajos/agua. */
+    rect(x, z, w, d, rot = 0, cam = true) {
+        this.list.push({ t: 'r', x, z, hw: w / 2, hd: d / 2, cos: Math.cos(rot), sin: Math.sin(rot), cam });
+    }
+    /** ¿La cámara (círculo de radio pr) queda dentro de algo alto: casas, árboles, carpas? */
+    hitsCam(px, pz, pr) {
+        for (const c of this.list) {
+            if (c.t === 'c') {
+                if (!c.cam) continue;
+                const dx = px - c.x, dz = pz - c.z, m = pr + c.cam;
+                if (dx * dx + dz * dz < m * m) return true;
+            } else if (c.cam) {
+                const dx = px - c.x, dz = pz - c.z;
+                const lx = dx * c.cos - dz * c.sin, lz = dx * c.sin + dz * c.cos;
+                const ex = lx - Math.max(-c.hw, Math.min(c.hw, lx)), ez = lz - Math.max(-c.hd, Math.min(c.hd, lz));
+                if (ex * ex + ez * ez < pr * pr) return true;
+            }
+        }
+        return false;
     }
     /** ¿Un círculo de radio `pr` en (px, pz) toca algo? */
     hits(px, pz, pr) {
@@ -173,15 +190,16 @@ export class World {
             colliders,
             faceTo,
             avoid: [],          // zonas que el decorado aleatorio debe respetar: {x, z, r}
+            pathSegs: [],       // caminos {x1, z1, x2, z2, w}: el decorado aleatorio no se pone encima
             random, range,
 
             /** Coloca un objeto horneado en el decorado estático. */
-            place(mesh, x, z, { rot = 0, scale = 1, y = 0, collide = 0 } = {}) {
+            place(mesh, x, z, { rot = 0, scale = 1, y = 0, collide = 0, camBlock = 0 } = {}) {
                 mesh.position.set(x, y, z);
                 mesh.rotation.y = rot;
                 mesh.scale.setScalar(scale);
                 statics.add(mesh);
-                if (collide) colliders.circle(x, z, collide);
+                if (collide) colliders.circle(x, z, collide, camBlock * scale);
                 return mesh;
             },
             /** Colocación + colisión rectangular (casas, iglesia). w y d en unidades locales. */
@@ -215,21 +233,39 @@ export class World {
                 baked.rotation.y = Math.atan2(x2 - x1, z2 - z1);
                 baked.castShadow = false;
                 statics.add(baked);
+                ctx.pathSegs.push({ x1, z1, x2, z2, w: width });
             },
 
-            /** Esparce `count` objetos al azar entre rMin y rMax, respetando `ctx.avoid`. */
-            scatter(count, make, { rMin = 8, rMax = cur.radius - 3, collide = 0, minGap = 3, center = [0, 0], scale = [1, 1] } = {}) {
+            /** ¿(x, z) está a menos de `clear` de un camino? */
+            nearPath(x, z, clear) {
+                for (const s of ctx.pathSegs) {
+                    const dx = s.x2 - s.x1, dz = s.z2 - s.z1;
+                    const t = Math.max(0, Math.min(1, ((x - s.x1) * dx + (z - s.z1) * dz) / (dx * dx + dz * dz)));
+                    if (Math.hypot(x - (s.x1 + t * dx), z - (s.z1 + t * dz)) < s.w / 2 + clear) return true;
+                }
+                return false;
+            },
+
+            /**
+             * Esparce `count` objetos al azar entre rMin y rMax.
+             * Nunca los pone sobre casas/objetos ya colocados, caminos, NPC, portales ni el punto de llegada.
+             * clear: holgura mínima (en unidades) alrededor de cada objeto.
+             */
+            scatter(count, make, { rMin = 8, rMax = cur.radius - 3, collide = 0, minGap = 3, center = [0, 0], scale = [1, 1], clear = null, camBlock = 0 } = {}) {
                 const placed = [];
                 let tries = 0;
-                while (placed.length < count && tries++ < count * 40) {
+                while (placed.length < count && tries++ < count * 60) {
                     const a = random() * Math.PI * 2;
                     const d = Math.sqrt(random()) * (rMax - rMin) + rMin;
                     const x = center[0] + Math.cos(a) * d, z = center[1] + Math.sin(a) * d;
-                    if (Math.hypot(x, z) > cur.radius - 2) continue;
-                    if (ctx.avoid.some((p) => Math.hypot(x - p.x, z - p.z) < p.r)) continue;
-                    if (placed.some((p) => Math.hypot(x - p.x, z - p.z) < minGap)) continue;
                     const s = range(scale[0], scale[1]);
-                    ctx.place(make(), x, z, { rot: random() * Math.PI * 2, scale: s, collide: collide * s });
+                    const room = clear ?? (collide * s + 1.2);
+                    if (Math.hypot(x, z) > cur.radius - 2 - room) continue;
+                    if (ctx.avoid.some((p) => Math.hypot(x - p.x, z - p.z) < p.r + room * 0.5)) continue;
+                    if (colliders.hits(x, z, room)) continue;
+                    if (ctx.nearPath(x, z, room)) continue;
+                    if (placed.some((p) => Math.hypot(x - p.x, z - p.z) < minGap)) continue;
+                    ctx.place(make(), x, z, { rot: random() * Math.PI * 2, scale: s, collide: collide * s, camBlock });
                     placed.push({ x, z });
                 }
                 return placed;
