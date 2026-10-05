@@ -67,11 +67,13 @@ export function createFountain() {
 }
 
 export function createLamp() {
-    return bake(group(
+    const lamp = bake(group(
         cyl(0.1, 0.14, 3.2, 0x2b2b30, [0, 1.6, 0], 6),
         box(0.5, 0.6, 0.5, 0xfff0b0, [0, 3.4, 0]),
         piece(new THREE.ConeGeometry(0.42, 0.35, 4), 0x2b2b30, { pos: [0, 3.9, 0], rot: [0, Math.PI / 4, 0] })
     ));
+    lamp.userData.glow = { y: 3.4 };   // de noche se enciende (ver Atmosphere.js)
+    return lamp;
 }
 
 export function createFence(length = 6, color = 0x8a6a45) {
@@ -501,16 +503,19 @@ export function createCloudLayer({ count = 14, minDist = 55, maxDist = 130, minY
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), sc = new THREE.Vector3();
     const limit = maxDist * 1.35;
 
+    const layer = { mesh, cover: 0, update };   // cover (0..1): con mal tiempo las nubes crecen y bajan
+
     function update(t, dt) {
+        const grow = 1 + 0.75 * layer.cover, drop = 5 * layer.cover;
         let idx = 0;
         for (const c of clouds) {
             c.x += c.speed * dt;
             if (c.x > limit) c.x = -limit;
             for (const p of c.puffs) {
                 const breathe = 1 + Math.sin(t * 0.55 + p.ph) * 0.07;
-                pos.set(c.x + p.ox + Math.sin(t * 0.21 + p.ph) * 0.9, c.y + p.oy + Math.sin(t * 0.4 + p.ph * 1.7) * 0.8, c.z + p.oz);
+                pos.set(c.x + p.ox * grow + Math.sin(t * 0.21 + p.ph) * 0.9, c.y - drop + p.oy + Math.sin(t * 0.4 + p.ph * 1.7) * 0.8, c.z + p.oz);
                 q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, p.ph + t * 0.05);
-                sc.set(p.r * 1.35 * breathe, p.r * 0.85 * breathe, p.r * breathe);
+                sc.set(p.r * 1.35 * breathe * grow, p.r * 0.85 * breathe * (0.8 + 0.2 * grow), p.r * breathe * grow);
                 m.compose(pos, q, sc);
                 mesh.setMatrixAt(idx++, m);
             }
@@ -518,7 +523,7 @@ export function createCloudLayer({ count = 14, minDist = 55, maxDist = 130, minY
         mesh.instanceMatrix.needsUpdate = true;
     }
     update(0, 0);
-    return { mesh, update };
+    return layer;
 }
 
 // =====================================================================

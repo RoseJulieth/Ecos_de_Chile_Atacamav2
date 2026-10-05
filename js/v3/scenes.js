@@ -360,9 +360,9 @@ const bahia = {
 
         // mar: aguas profundas, orilla poco profunda y espuma que va y viene
         const shoreZ = -17;
-        const deep = new THREE.Mesh(new THREE.PlaneGeometry(800, 500), new THREE.MeshBasicMaterial({ color: 0x1f8fb8 }));
+        const deep = new THREE.Mesh(new THREE.PlaneGeometry(800, 500), new THREE.MeshToonMaterial({ color: 0x1f8fb8 }));
         deep.rotation.x = -Math.PI / 2; deep.position.set(0, 0.02, shoreZ - 250);
-        const shallow = new THREE.Mesh(new THREE.PlaneGeometry(800, 22), new THREE.MeshBasicMaterial({ color: 0x4fd0d6 }));
+        const shallow = new THREE.Mesh(new THREE.PlaneGeometry(800, 22), new THREE.MeshToonMaterial({ color: 0x4fd0d6 }));
         shallow.rotation.x = -Math.PI / 2; shallow.position.set(0, 0.04, shoreZ - 11);
         const foamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
         const foams = [0, 1, 2].map((i) => {

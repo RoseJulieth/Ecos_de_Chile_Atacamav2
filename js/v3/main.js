@@ -13,6 +13,7 @@ import { ALL_SCENES } from './scenes.js';
 import { PlayerController } from './PlayerController.js';
 import { Minimap } from './Minimap.js';
 import { Quests } from './Quests.js';
+import { Atmosphere } from './Atmosphere.js';
 
 // ========== CONFIGURACIÓN INICIAL ==========
 const scene = new THREE.Scene();
@@ -34,6 +35,7 @@ let inventory, gameState, audioManager, world, player, cameraController, uiManag
 let currentSceneId = 'copiapo';
 let minimap = null;
 let quests = null;
+let atmosphere = null;
 let transitioning = false;
 let menuOrbit = 0;
 
@@ -59,6 +61,8 @@ async function initGame() {
     loading.set(0.5, 'Levantando Copiapó...');
     world = new World(scene, { npcs: npcData, fragments: FRAGMENTS, inventory });
     world.onSighting = registerSighting;
+    atmosphere = new Atmosphere(world, scene, camera);
+    world.onLoaded = (cur) => atmosphere.setScene(cur);
     ALL_SCENES.forEach((d) => world.register(d));
     inventory.load(FRAGMENTS);
 
@@ -287,8 +291,9 @@ function refreshProgressUI() {
 
 function updateSceneAudio(delta) {
     const a = world.current.def.audio || {};
-    audioManager.setLayerTarget('desert_wind', a.wind ?? 0.5);
+    audioManager.setLayerTarget('desert_wind', (a.wind ?? 0.5) * Math.min(1.5, atmosphere.windFactor));
     audioManager.setLayerTarget('ocean_waves', a.waves ?? 0);
+    audioManager.setLayerTarget('rain_loop', Math.min(1, atmosphere.rainAmount));
     audioManager.updateLayers(delta);
 }
 
@@ -409,6 +414,8 @@ function animate() {
 
         const pp = player.getPosition();
         world.update(delta, pp);
+        atmosphere.update(delta, pp);
+        updateEnvChip(delta);
         interactionSystem.update(pp, cur.interactables);
         updateSceneAudio(delta);
         minimap.update(cur, { x: pp.x, z: pp.z, heading: player.root.rotation.y }, cameraController.getAngle(), inventory, world.time);
@@ -441,6 +448,7 @@ function animate() {
         camera.position.set(Math.sin(menuOrbit) * 30, 11, Math.cos(menuOrbit) * 30);
         camera.lookAt(0, 3, 0);
         world.update(delta, { x: 0, z: 0 });
+        atmosphere.update(delta, { x: 0, z: 0 });
     }
 
     renderer.render(scene, camera);
@@ -477,6 +485,19 @@ function notifyQuestReady(q) {
     uiManager.showNotification(q.title, `Objetivo cumplido. Vuelve a hablar con ${npc ? npc.name.split(' - ')[0] : 'el NPC'} para recibir tu recompensa.`, '¡Misión lista!');
     playSfx('notification');
 }
+
+// ========== HORA Y CLIMA ==========
+let envTimer = 0;
+function updateEnvChip(dt) {
+    envTimer -= dt;
+    if (envTimer > 0) return;
+    envTimer = 0.5;
+    const el = document.getElementById('env-chip');
+    if (el) el.textContent = atmosphere.label();
+}
+
+document.getElementById('env-time').addEventListener('change', (e) => { playSfx('button_click'); atmosphere.setTimeMode(e.target.value); });
+document.getElementById('env-weather').addEventListener('change', (e) => { playSfx('button_click'); atmosphere.setWeatherMode(e.target.value); });
 
 // ========== PANEL DE MISIONES ==========
 function updateTracker() {

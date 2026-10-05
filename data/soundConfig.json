@@ -31,6 +31,12 @@
             "volume": 0.5,
             "loop": true,
             "description": "Olas del mar (capa: sube cerca de Bahía Inglesa)"
+        },
+        "rain_loop": {
+            "path": "assets/sounds/ambient/rain_loop.mp3",
+            "volume": 0.5,
+            "loop": true,
+            "description": "Lluvia (capa: sube cuando llueve)"
         }
     },
     "sfx": {

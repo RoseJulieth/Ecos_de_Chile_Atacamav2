@@ -15,10 +15,14 @@
 > | `js/v3/Characters.js` | Personajes y la "receta" de cada NPC |
 > | `js/v3/Buildings.js` | Casas, iglesia, palmeras, botes, mina, portales, reliquias… |
 > | `js/ProceduralAssets.js` | Cactus, rocas, flores, cerros y utilidades de dibujo |
+> | `js/v3/Fauna.js` | Gaviotas, abejas, gatos, perros, zorros culpeo y diucas |
+> | `js/v3/Quests.js` | Misiones de los NPC y sus recompensas |
+> | `js/v3/Atmosphere.js` | Día y noche, clima (despejado, nublado, camanchaca, lluvia) |
+> | `js/v3/Minimap.js` | Mapa con brújula al fragmento |
 > | `js/v3/main.js` | Arranque, bucle del juego, interacción y guardado |
 >
 > La versión anterior (mapa único con modelos descargados) sigue disponible en `index_clasico.html`.
-> Vistas previas de los objetos: `preview_assets.html` y `preview_characters.html`.
+> Vistas previas: `preview_assets.html` (objetos), `preview_characters.html` (personajes) y `preview_fauna.html` (animales).
 
 # 🏜️ Ecos de Chile: Atacama
 

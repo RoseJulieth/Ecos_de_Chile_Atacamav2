@@ -2,7 +2,7 @@
 """Genera los efectos de sonido y los ambientes (viento, olas) del juego (sin dependencias, requiere ffmpeg).
 
 Uso:  python3 tools/generar_sfx.py
-Salida: assets/sounds/sfx/*.mp3, assets/sounds/ui/*.mp3 y assets/sounds/ambient/{desert_wind,ocean_waves}.mp3
+Salida: assets/sounds/sfx/*.mp3, assets/sounds/ui/*.mp3 y assets/sounds/ambient/{desert_wind,ocean_waves,rain_loop}.mp3
 """
 import math, os, random, struct, subprocess, tempfile, wave
 
@@ -139,7 +139,23 @@ def olas():
     return out
 
 
+def lluvia():
+    rng = random.Random(23)
+    n = int(SR * LARGO)
+    base = ruido_ciclico(rng, LARGO)
+    suave = pasabajos(base, 1500)
+    agudos = [b - p for b, p in zip(base, suave)]          # siseo de las gotas
+    grave = pasabajos(base, 220)                            # rumor de fondo
+    out = []
+    for i in range(n):
+        t = i / SR
+        mod = 0.85 + 0.15 * math.sin(2 * math.pi * 3 * t / LARGO) + 0.08 * math.sin(2 * math.pi * 11 * t / LARGO + 1.1)
+        out.append((agudos[i] * 0.55 + grave[i] * 2.2) * mod)
+    return out
+
+
 AMBIENTES = {
+    'ambient/rain_loop.mp3': lluvia,
     'ambient/desert_wind.mp3': viento,
     'ambient/ocean_waves.mp3': olas,
 }

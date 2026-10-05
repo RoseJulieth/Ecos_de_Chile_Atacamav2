@@ -619,6 +619,32 @@
         #quest-tracker .chip.ready { border-color: #58e07a; }
         #quest-tracker .chip small { color: #f2c96b; display: block; }
         #quest-tracker .chip b { color: #FFD700; }
+
+        /* ===== Hora y clima ===== */
+        #env-chip {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 14px;
+            background: rgba(20, 12, 6, 0.72);
+            border: 2px solid #d4a017;
+            border-radius: 999px;
+            color: #fff6dc;
+            font-size: 14px;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .env-controls select {
+            margin-left: 8px;
+            padding: 4px 8px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 2px solid #d4a017;
+            background: #2b1a0a;
+            color: #fff6dc;
+        }
     </style>
     <script type="importmap">
         {
@@ -650,6 +676,34 @@
             <button id="btn-inventory-full">📦 Ver Inventario Completo</button>
             <button id="btn-save">💾 Guardar Progreso</button>
             <button id="btn-controls">❓ Ver controles</button>
+
+            <!-- Hora y clima -->
+            <div class="env-controls"
+                style="margin: 20px 0 0; padding: 16px 20px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 2px solid #d4a017;">
+                <h3 style="color: #FFD700; margin: 0 0 12px 0; text-align: center;">🌤️ Hora y clima</h3>
+                <div style="margin: 8px 0; color: white; text-align: right;">
+                    <label>Hora
+                        <select id="env-time">
+                            <option value="auto">Automática</option>
+                            <option value="amanecer">Amanecer</option>
+                            <option value="dia">Día</option>
+                            <option value="atardecer">Atardecer</option>
+                            <option value="noche">Noche</option>
+                        </select>
+                    </label>
+                </div>
+                <div style="margin: 8px 0; color: white; text-align: right;">
+                    <label>Clima
+                        <select id="env-weather">
+                            <option value="auto">Automático</option>
+                            <option value="despejado">Despejado</option>
+                            <option value="nublado">Nublado</option>
+                            <option value="camanchaca">Camanchaca (niebla)</option>
+                            <option value="lluvia">Lluvia</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
 
             <!-- Controles de Audio -->
             <div
@@ -686,6 +740,7 @@
 
         <!-- HUD del Juego -->
         <div id="hud">
+            <div id="env-chip"></div>
             <div id="quest-tracker"></div>
             <canvas id="minimap" width="380" height="380"></canvas>
             <div id="inventory-panel">

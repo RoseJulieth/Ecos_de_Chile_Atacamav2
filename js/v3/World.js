@@ -144,7 +144,7 @@ export class World {
         const colliders = new Colliders();
         const cur = {
             id, def, group, colliders, radius: def.radius ?? 40,
-            interactables: [], npcs: [], fragments: [], portals: [], dynamics: [], signs: [], fauna: [], sighted: new Set(), pickups: []
+            interactables: [], npcs: [], fragments: [], portals: [], dynamics: [], signs: [], fauna: [], sighted: new Set(), pickups: [], glows: [], clouds: null
         };
         setSeed(def.seed ?? 1);
 
@@ -168,16 +168,21 @@ export class World {
 
         // nubes que derivan con el viento
         const clouds = createCloudLayer({ count: def.clouds ?? 14 });
+        cur.clouds = clouds;
         group.add(clouds.mesh);
         cur.dynamics.push((t, dt) => clouds.update(t, dt));
 
         this.scene.add(group);
-        this.scene.background = skyTexture(def.sky[0], def.sky[1]);
-        this.scene.fog = new THREE.Fog(def.sky[1], cur.radius * 1.2, cur.radius * 3.6);
-        this.hemi.color.set(def.hemiSky ?? 0xdcebff);
-        this.hemi.groundColor.set(def.hemiGround ?? 0xb98a5c);
+        if (!this.externalSky) {
+            // sin Atmosphere: cielo y niebla fijos
+            this.scene.background = skyTexture(def.sky[0], def.sky[1]);
+            this.scene.fog = new THREE.Fog(def.sky[1], cur.radius * 1.2, cur.radius * 3.6);
+            this.hemi.color.set(def.hemiSky ?? 0xdcebff);
+            this.hemi.groundColor.set(def.hemiGround ?? 0xb98a5c);
+        }
 
         this.current = cur;
+        if (this.onLoaded) this.onLoaded(cur);
         return cur;
     }
 
@@ -190,7 +195,7 @@ export class World {
             const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
             mats.forEach((m) => { if (m.map) m.map.dispose(); m.dispose(); });
         });
-        if (this.scene.background && this.scene.background.dispose) this.scene.background.dispose();
+        if (!this.externalSky && this.scene.background && this.scene.background.dispose) this.scene.background.dispose();
         this.current = null;
     }
 
@@ -210,6 +215,7 @@ export class World {
                 mesh.rotation.y = rot;
                 mesh.scale.setScalar(scale);
                 statics.add(mesh);
+                if (mesh.userData.glow) cur.glows.push({ x, y: y + mesh.userData.glow.y * scale, z });
                 if (collide) colliders.circle(x, z, collide, camBlock * scale);
                 return mesh;
             },
