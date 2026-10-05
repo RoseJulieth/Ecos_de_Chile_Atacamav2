@@ -26,7 +26,7 @@ export const random = () => rand();
 
 // ---------- Material toon compartido ----------
 let gradientMap = null;
-function getGradientMap() {
+export function getGradientMap() {
     if (!gradientMap) {
         // 3 escalones de luz (sombra, medio, luz) sin degradé: el "corte" típico del cel-shading
         gradientMap = new THREE.DataTexture(new Uint8Array([110, 190, 255]), 3, 1, THREE.RedFormat);

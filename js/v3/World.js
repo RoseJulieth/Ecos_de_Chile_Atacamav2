@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { createGround, createHillRing, addOutline, mergeBaked, bake, setSeed, random, range } from '../ProceduralAssets.js';
 import { createCharacter, LOOKS } from './Characters.js';
-import { createCloud, createPortal, createRelic, createSignboard } from './Buildings.js';
+import { createCloudLayer, createPortal, createRelic, createSignboard } from './Buildings.js';
 
 const faceTo = (x, z, tx = 0, tz = 0) => Math.atan2(tx - x, tz - z);
 
@@ -126,7 +126,7 @@ export class World {
         const colliders = new Colliders();
         const cur = {
             id, def, group, colliders, radius: def.radius ?? 40,
-            interactables: [], npcs: [], fragments: [], portals: [], dynamics: [], signs: []
+            interactables: [], npcs: [], fragments: [], portals: [], dynamics: [], signs: [], fauna: [], sighted: new Set()
         };
         setSeed(def.seed ?? 1);
 
@@ -148,17 +148,10 @@ export class World {
         hills.castShadow = hills.receiveShadow = false;
         group.add(hills);
 
-        // nubes
-        for (let i = 0; i < (def.clouds ?? 6); i++) {
-            const cloud = createCloud();
-            const a = random() * Math.PI * 2, d = range(60, 170);
-            cloud.position.set(Math.cos(a) * d, range(38, 62), Math.sin(a) * d);
-            cloud.scale.setScalar(range(1.4, 2.6));
-            cloud.castShadow = cloud.receiveShadow = false;
-            group.add(cloud);
-            const speed = range(0.6, 1.6);
-            cur.dynamics.push((t, dt) => { cloud.position.x += speed * dt; if (cloud.position.x > 190) cloud.position.x = -190; });
-        }
+        // nubes que derivan con el viento
+        const clouds = createCloudLayer({ count: def.clouds ?? 14 });
+        group.add(clouds.mesh);
+        cur.dynamics.push((t, dt) => clouds.update(t, dt));
 
         this.scene.add(group);
         this.scene.background = skyTexture(def.sky[0], def.sky[1]);
@@ -312,6 +305,8 @@ export class World {
                     marker.position.y = 4.1 + Math.sin(t * 3 + x) * 0.18;
                     marker.rotation.y = t * 2;
                     tag.visible = dist < 15;
+                    const k = Math.max(0.42, Math.min(1.05, dist / 10));   // más chico cuando estás cerca
+                    tag.scale.set(4.6 * k, 1.15 * k, 1);
                 });
                 return root;
             },
@@ -360,6 +355,21 @@ export class World {
                 colliders.circle(x, z, 1.5);
                 ctx.avoid.push({ x, z, r: 4 });
                 return s;
+            },
+
+            /** Animales de la zona. Al acercarse el jugador por primera vez se avisa con world.onSighting(especie). */
+            fauna(animals) {
+                cur.group.add(animals.root);
+                cur.fauna.push(animals);
+                cur.dynamics.push((t, dt, player) => {
+                    animals.update(t, dt, player);
+                    const sp = animals.species;
+                    if (!cur.sighted.has(sp.id) && animals.minDistance(player) < sp.sightRadius) {
+                        cur.sighted.add(sp.id);
+                        if (world.onSighting) world.onSighting(sp);
+                    }
+                });
+                return animals;
             },
 
             /** Objeto animado: fn(t, dt, jugador). */

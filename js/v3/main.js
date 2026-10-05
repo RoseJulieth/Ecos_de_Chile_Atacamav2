@@ -56,6 +56,7 @@ async function initGame() {
 
     loading.set(0.5, 'Levantando Copiapó...');
     world = new World(scene, { npcs: npcData, fragments: FRAGMENTS, inventory });
+    world.onSighting = registerSighting;
     ALL_SCENES.forEach((d) => world.register(d));
     inventory.load(FRAGMENTS);
 
@@ -69,7 +70,7 @@ async function initGame() {
     cameraController = new CameraController(camera, renderer.domElement);
     cameraController.distance = 11;
     cameraController.targetHeight = 1.9;
-    cameraController.verticalAngle = 0.38;
+    cameraController.verticalAngle = 0.3;   // un poco más baja: se ve más cielo y nubes
 
     loading.set(0.85, 'Armando la plaza...');
     enterScene('copiapo', null);
@@ -437,6 +438,16 @@ function keepCameraClear(cur, dt) {
     camReach += (safe - camReach) * Math.min(1, dt * (safe < camReach ? 16 : 3));
     camera.position.set(head.x + dx * camReach, hy + dy * camReach, head.z + dz * camReach);
     camera.lookAt(head.x, hy, head.z);
+}
+
+// ========== FAUNA ==========
+/** Un animal avistado por primera vez se guarda en Items (inventario) y se avisa en pantalla. */
+function registerSighting(species) {
+    if (inventory.categories.items.some((i) => i.id === species.id)) return;
+    inventory.addItem({ id: species.id, name: species.name, icon: species.icon, place: species.place, info: species.info });
+    uiManager.showNotification(`${species.icon} ${species.name}`, species.info, '¡Nuevo avistamiento!');
+    uiManager.updateInventoryPanel(inventory.getInventoryData());
+    playSfx('notification');
 }
 
 // ========== INTERACCIÓN ==========

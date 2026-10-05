@@ -58,10 +58,10 @@ export class UIManager {
         document.getElementById('counter').innerText = `${count}/${total}`;
     }
 
-    showNotification(title, info) {
+    showNotification(title, info, header = '¡Fragmento Recolectado!') {
         const notif = document.getElementById('notification');
         notif.innerHTML = `
-            <strong>¡Fragmento Recolectado!</strong><br>
+            <strong>${header}</strong><br>
             <span style="font-size: 20px; color: #FFD700;">${title}</span><br>
             <i style="font-size: 14px; color: #DDD;">${info}</i>
         `;
@@ -138,7 +138,7 @@ export class UIManager {
                     `;
                 } else {
                     div.innerHTML = `
-                        <strong>${item.name}</strong><br>
+                        <strong>${item.icon ? item.icon + ' ' : ''}${item.name}</strong>${item.place ? ` <small style="opacity:.7">· ${item.place}</small>` : ''}<br>
                         <small>${item.info || item.description || ''}</small>
                     `;
                 }

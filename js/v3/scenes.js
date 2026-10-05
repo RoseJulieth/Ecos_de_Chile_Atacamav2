@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { piece, bake, range, createCactus, createRock, createRockCluster, createFlowerPatch } from '../ProceduralAssets.js';
 import * as B from './Buildings.js';
+import { createSeagulls, createBees } from './Fauna.js';
 
 const toRad = (deg) => (deg * Math.PI) / 180;
 const polar = (phiDeg, r) => ({ x: r * Math.sin(toRad(phiDeg)), z: -r * Math.cos(toRad(phiDeg)) }); // phi=0 -> -Z (adelante)
@@ -28,7 +29,7 @@ const HUB_PORTALS = [
     { target: 'florido', phi: 36, label: 'Desierto Florido', color: 0xff7bc0 },
     { target: 'bahia', phi: 72, label: 'Bahía Inglesa', color: 0x36d6e0 }
 ];
-const HUB_PORTAL_R = 33;
+const HUB_PORTAL_R = 46;
 
 // al volver desde una escena, el jugador aparece frente al portal por el que salió
 const hubSpawns = {};
@@ -41,76 +42,84 @@ const GRASS = 0x7fb069;
 
 const copiapo = {
     id: 'copiapo', name: 'Copiapó', subtitle: 'La capital minera de Atacama · elige un portal',
-    seed: 11, radius: 42,
+    seed: 11, radius: 58,
     sky: [0x5aa6ea, 0xd8edf7], ground: 0xcdb27e, hillColors: WARM_HILLS,
     audio: { wind: 0.4, waves: 0 },
-    spawn: { x: 0, z: 14, heading: [0, -1] },
+    spawn: { x: 0, z: 19, heading: [0, -1] },
     spawns: hubSpawns,
     build(ctx) {
-        // plaza con césped, arriates y fuente
-        ctx.patch(0, 0, 13, GRASS);
-        ctx.patch(0, 0, 11, 0xdcceb0);
-        ctx.patch(0, 0, 8.6, 0xc9b896);
+        // plaza amplia con césped, arriates de flores y fuente (todo con holgura para pasar entre medio)
+        ctx.patch(0, 0, 19, GRASS);
+        ctx.patch(0, 0, 16, 0xdcceb0);
+        ctx.patch(0, 0, 12.5, 0xc9b896);
         ctx.place(B.createFountain(), 0, 0, { collide: 3.6 });
-        for (let i = 0; i < 6; i++) {
-            const p = polar(i * 60 + 30, 10.2);
-            ctx.place(B.createLamp(), p.x, p.z, { collide: 0.4 });
-        }
         for (let i = 0; i < 4; i++) {
-            const p = polar(i * 90 + 45, 6.4);
+            const p = polar(i * 90 + 45, 9.5);
             ctx.place(B.createFlowerBed({ radius: 1.5 }), p.x, p.z, { collide: 1.7 });
         }
-        for (let i = 0; i < 6; i++) {
-            const p = polar(i * 60, 9.2);
-            if (i === 0 || i === 3) continue; // dejar libres los accesos principales
+        for (let i = 0; i < 8; i++) {
+            const p = polar(i * 45 + 22.5, 14.2);
+            ctx.place(B.createLamp(), p.x, p.z, { collide: 0.4 });
+        }
+        for (let i = 0; i < 8; i++) {
+            const phi = i * 45;
+            if (phi % 90 === 0 && phi !== 90 && phi !== 270) continue; // accesos norte/sur libres
+            const p = polar(phi, 12.6);
             ctx.place(B.createBench(), p.x, p.z, { rot: faceTo(p.x, p.z), collide: 1.2 });
         }
 
-        // caminos hacia cada portal
+        // caminos anchos hacia cada portal, con farolas a los costados
         for (const hp of HUB_PORTALS) {
-            const a = polar(hp.phi, 11), b = polar(hp.phi, HUB_PORTAL_R - 4);
-            ctx.path(a.x, a.z, b.x, b.z, 3.6, 0xdcceb0);
-            ctx.portal({ label: hp.label, target: hp.target, x: polar(hp.phi, HUB_PORTAL_R).x, z: polar(hp.phi, HUB_PORTAL_R).z, color: hp.color });
+            const a = polar(hp.phi, 16), b = polar(hp.phi, HUB_PORTAL_R - 4);
+            ctx.path(a.x, a.z, b.x, b.z, 5, 0xdcceb0);
+            const portalPos = polar(hp.phi, HUB_PORTAL_R);
+            ctx.portal({ label: hp.label, target: hp.target, x: portalPos.x, z: portalPos.z, color: hp.color });
+            const nx = Math.cos(toRad(hp.phi)), nz = Math.sin(toRad(hp.phi)); // perpendicular al camino
+            for (const d of [24, 32, 40]) for (const side of [-1, 1]) {
+                const c = polar(hp.phi, d);
+                ctx.place(B.createLamp(), c.x + nx * 3.4 * side, c.z + nz * 3.4 * side, { collide: 0.4 });
+            }
         }
-        // árboles de plaza (Copiapó es un oasis verde en el desierto): anillo alrededor de la plaza
-        for (let i = 0; i < 22; i++) {
-            const phi = i * (360 / 22) + 8;
-            const p = polar(phi, 15.5 + (i % 2) * 2);
-            if (Math.abs(phi - 180) < 34) continue;          // franja de la cámara al empezar (detrás del jugador)
-            if (ctx.nearPath(p.x, p.z, 2.2)) continue;
+
+        // anillo de árboles de plaza (Copiapó es un oasis verde en el desierto)
+        for (let i = 0; i < 34; i++) {
+            const phi = i * (360 / 34) + 5;
+            const p = polar(phi, 22 + (i % 2) * 2.5);
+            if (Math.abs(phi - 180) < 30) continue;          // franja de la cámara al empezar (detrás del jugador)
+            if (ctx.nearPath(p.x, p.z, 2.8)) continue;
             ctx.place(B.createTree({ height: 2.8 + (i % 3) * 0.5, size: 0.9 + (i % 4) * 0.1 }), p.x, p.z, { collide: 0.7, rot: i, camBlock: 2.4 });
         }
 
         // iglesia y casas, solo detrás de la plaza (así no invaden los caminos hacia los portales)
-        const church = polar(215, 31);
+        const church = polar(218, 46);
+        ctx.patch(church.x, church.z, 10, GRASS);
         ctx.placeBox(B.createChurch(), church.x, church.z, 9, 14, { rot: faceTo(church.x, church.z) });
         const walls = B.WALLS;
-        [100, 124, 148, 172, 255].forEach((phi, i) => {
-            const p = polar(phi, 28 + (i % 2) * 2.5);
+        [98, 120, 142, 164, 252].forEach((phi, i) => {
+            const p = polar(phi, 41 + (i % 2) * 2.5);
             ctx.placeBox(B.createHouse({ wall: walls[i % walls.length], roofType: i % 2 ? 'flat' : 'pyramid' }), p.x, p.z, 7, 6, { rot: faceTo(p.x, p.z) });
-            // un árbol junto a cada casa
-            const t = polar(phi - 7, 24);
+            const t = polar(phi - 6, 35);
             ctx.place(B.createTree({ height: 3, size: 0.95 }), t.x, t.z, { collide: 0.7, rot: i, camBlock: 2.4 });
         });
-        const w = polar(192, 22);
+        const w = polar(192, 32);
         ctx.place(B.createWell(), w.x, w.z, { collide: 1.5 });
 
         // gente
-        ctx.npc('npc_002', -6, -4.5, faceTo(-6, -4.5, 0, 10));
-        ctx.npc('npc_008', 8.5, 4.5, faceTo(8.5, 4.5, 0, 10));
-        const cn = { x: church.x + 5, z: church.z - 11 };
-        ctx.npc('npc_009', cn.x, cn.z, faceTo(cn.x, cn.z, 0, 10));
+        ctx.npc('npc_002', -10, -4, faceTo(-10, -4, 0, 12));
+        ctx.npc('npc_008', 11, 6, faceTo(11, 6, 0, 12));
+        const cn = { x: church.x + 6, z: church.z - 13 };
+        ctx.npc('npc_009', cn.x, cn.z, faceTo(cn.x, cn.z, 0, 12));
 
         ctx.sign({
-            title: 'Copiapó', x: 5, z: 10, rot: 0,
+            title: 'Copiapó', x: 8, z: 14, rot: 0,
             description: 'Copiapó es la capital de la Región de Atacama. En 1832 el descubrimiento de plata en Chañarcillo la convirtió en capital minera, y en 1851 llegó el ferrocarril que la unió con Caldera, uno de los primeros de Sudamérica. Elige un portal para viajar por Atacama y encontrar los 5 fragmentos históricos.'
         });
 
-        // un poco de desierto en los bordes
-        ctx.avoid.push({ x: 0, z: 0, r: 14 }, { x: 0, z: 14, r: 5 }, { x: 0, z: 25, r: 7 }); // 25 = donde queda la cámara al empezar
-        ctx.scatter(5, () => createCactus(), { rMin: 20, collide: 0.7, minGap: 6 });
-        ctx.scatter(4, () => createRockCluster(), { rMin: 22, collide: 1.8, minGap: 7 });
-        ctx.scatter(8, () => B.createTree({ height: 2.6, size: 0.9 }), { rMin: 17, collide: 0.7, minGap: 5, camBlock: 2.4 });
+        // un poco de desierto y más verde en los bordes
+        ctx.avoid.push({ x: 0, z: 0, r: 20 }, { x: 0, z: 19, r: 6 }, { x: 0, z: 30, r: 8 }); // 30 = donde queda la cámara al empezar
+        ctx.scatter(8, () => createCactus(), { rMin: 30, collide: 0.7, minGap: 7 });
+        ctx.scatter(6, () => createRockCluster(), { rMin: 30, collide: 1.8, minGap: 8 });
+        ctx.scatter(16, () => B.createTree({ height: 2.6, size: 0.9 }), { rMin: 26, collide: 0.7, minGap: 6, camBlock: 2.4 });
     }
 };
 
@@ -301,9 +310,12 @@ const florido = {
 
         ctx.avoid.push({ x: 0, z: 21, r: 7 });
         // mar de flores: parches grandes por todo el valle (sin colisión, se camina entre ellas)
-        ctx.scatter(34, () => createFlowerPatch({ count: 11, radius: 4.2 }), { rMin: 5, rMax: 42, minGap: 5.5 });
+        const patches = ctx.scatter(34, () => createFlowerPatch({ count: 11, radius: 4.2 }), { rMin: 5, rMax: 42, minGap: 5.5, clear: 4.5 });
         ctx.scatter(12, () => createCactus(), { rMin: 10, collide: 0.7, minGap: 4 });
         ctx.scatter(9, () => createRockCluster(), { rMin: 12, collide: 1.8, minGap: 5 });
+
+        // abejas nativas que revolotean alrededor de las flores
+        ctx.fauna(createBees({ patches, count: 22 }));
     }
 };
 
@@ -369,6 +381,9 @@ const bahia = {
 
         ctx.avoid.push({ x: 0, z: 20, r: 6 });
         ctx.scatter(7, () => createRock(range(0.8, 1.5)), { rMin: 14, collide: 1.2, minGap: 4 });
+
+        // gaviotas: unas vuelan sobre el mar y otras se posan en la arena (despegan si te acercas)
+        ctx.fauna(createSeagulls({ center: [0, -24], flyers: 5, perches: [{ x: 2, z: -13 }, { x: -7, z: -14 }, { x: 10.5, z: -15 }, { x: -22, z: -14.5 }] }));
     }
 };
 

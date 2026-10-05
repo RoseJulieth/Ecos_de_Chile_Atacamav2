@@ -2,7 +2,7 @@
 // Casi todo sale como una malla "horneada" (sin contorno): la escena junta todo el decorado estático en una
 // sola malla (mergeBaked) y le pone un único contorno. Lo que se mueve (portales, reliquias, nubes) va aparte.
 import * as THREE from 'three';
-import { piece, bake, pick, getToonMaterial, createFlower } from '../ProceduralAssets.js';
+import { piece, bake, pick, getToonMaterial, getGradientMap, createFlower } from '../ProceduralAssets.js';
 
 const group = (...pieces) => { const g = new THREE.Group(); pieces.forEach(p => g.add(p)); return g; };
 const box = (w, h, d, color, pos, rot) => piece(new THREE.BoxGeometry(w, h, d), color, { pos, rot });
@@ -371,17 +371,58 @@ export function createSignboard({ title, subtitle = 'E: leer', description = '' 
 }
 
 // =====================================================================
-// NUBES
+// NUBES (una sola malla instanciada: todas las nubes cuestan 1 draw call)
 // =====================================================================
-export function createCloud() {
-    const g = new THREE.Group();
-    const n = 4 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < n; i++) {
-        g.add(piece(new THREE.IcosahedronGeometry(2.2 + Math.random() * 1.6, 0), 0xffffff, {
-            pos: [(i - n / 2) * 2.6 + Math.random(), Math.random() * 1.2, Math.random() * 1.5], scale: [1.3, 0.8, 1]
-        }));
+/**
+ * Capa de nubes que derivan con el viento. Cada nube está hecha de varias "bolitas" que se hinchan y
+ * flotan a su propio ritmo, así que las nubes cambian de forma lentamente.
+ */
+export function createCloudLayer({ count = 14, minDist = 55, maxDist = 130, minY = 18, maxY = 34 } = {}) {
+    const clouds = [];
+    let total = 0;
+    for (let c = 0; c < count; c++) {
+        const a = (c / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;   // repartidas parejo alrededor
+        const d = minDist + Math.random() * (maxDist - minDist);
+        const puffs = [];
+        const n = 5 + Math.floor(Math.random() * 3);
+        const size = 4 + Math.random() * 3;
+        for (let i = 0; i < n; i++) {
+            const k = i / (n - 1) - 0.5;
+            puffs.push({
+                ox: k * size * 2.6, oy: (1 - Math.abs(k) * 1.6) * size * 0.28, oz: (Math.random() - 0.5) * size * 0.9,
+                r: size * (0.55 + (1 - Math.abs(k) * 1.4) * 0.45 + Math.random() * 0.15), ph: Math.random() * 6.28
+            });
+        }
+        total += n;
+        clouds.push({ x: Math.cos(a) * d, y: minY + Math.random() * (maxY - minY), z: Math.sin(a) * d, speed: 1.2 + Math.random() * 1.6, puffs });
     }
-    return bake(g);
+
+    const mat = new THREE.MeshToonMaterial({ color: 0xffffff, emissive: 0x4a5566, gradientMap: getGradientMap() });
+    const mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), mat, total);
+    mesh.frustumCulled = false;
+    mesh.castShadow = mesh.receiveShadow = false;
+
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), sc = new THREE.Vector3();
+    const limit = maxDist * 1.35;
+
+    function update(t, dt) {
+        let idx = 0;
+        for (const c of clouds) {
+            c.x += c.speed * dt;
+            if (c.x > limit) c.x = -limit;
+            for (const p of c.puffs) {
+                const breathe = 1 + Math.sin(t * 0.55 + p.ph) * 0.07;
+                pos.set(c.x + p.ox + Math.sin(t * 0.21 + p.ph) * 0.9, c.y + p.oy + Math.sin(t * 0.4 + p.ph * 1.7) * 0.8, c.z + p.oz);
+                q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, p.ph + t * 0.05);
+                sc.set(p.r * 1.35 * breathe, p.r * 0.85 * breathe, p.r * breathe);
+                m.compose(pos, q, sc);
+                mesh.setMatrixAt(idx++, m);
+            }
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+    }
+    update(0, 0);
+    return { mesh, update };
 }
 
 // =====================================================================
