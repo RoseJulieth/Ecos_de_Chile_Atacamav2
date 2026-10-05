@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista previa - fauna</title>
+    <style>
+        html, body { margin: 0; height: 100%; overflow: hidden; background: #7fb3e6; font-family: sans-serif; }
+        #info { position: fixed; left: 10px; bottom: 10px; padding: 8px 12px; color: white; background: rgba(0,0,0,.55); border-radius: 6px; font-size: 13px; }
+        #info button { margin-left: 6px; }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="info">Jugador: <button data-p="lejos">lejos</button><button data-p="cerca">cerca (los animales reaccionan)</button></div>
+    <script type="module">
+        import * as THREE from 'three';
+        import { createGround, getToonMaterial } from './js/ProceduralAssets.js';
+        import { createCats, createDogs, createFoxes, createBirds, createSeagulls, createBees } from './js/v3/Fauna.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x7fb3e6);
+        const camera = new THREE.PerspectiveCamera(48, innerWidth / innerHeight, 0.1, 300);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+        scene.add(new THREE.HemisphereLight(0xdcebff, 0xb98a5c, 0.85));
+        const sun = new THREE.DirectionalLight(0xffffff, 2.6);
+        sun.position.set(10, 30, 20); sun.castShadow = true;
+        Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 20, bottom: -20 });
+        sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.06;
+        scene.add(sun, createGround(200));
+
+        const free = { hits: () => false };
+        const player = { x: 0, z: 40 };
+        const groups = [];
+        const add = (g) => { scene.add(g.root); groups.push(g); return g; };
+
+        // perchas para los pajaritos: bloques de piedra
+        const perches = [];
+        [[-14, -4], [-11, -6], [-8, -3]].forEach(([x, z], i) => {
+            const b = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1 + i * 0.4, 1.4), new THREE.MeshToonMaterial({ color: 0x9b8f7b }));
+            b.position.set(x, (1 + i * 0.4) / 2, z); b.castShadow = true; scene.add(b);
+            perches.push({ x, y: 1 + i * 0.4, z });
+        });
+
+        add(createCats({ colliders: free, limit: 60, roam: 3, homes: [{ x: -4, z: 1 }, { x: -2, z: 3 }] }));
+        add(createDogs({ colliders: free, limit: 60, roam: 3, homes: [{ x: 1, z: 1 }, { x: 3, z: 3 }] }));
+        add(createFoxes({ colliders: free, limit: 60, roam: 3, homes: [{ x: 7, z: 0 }, { x: 9, z: 2 }] }));
+        add(createBirds({ perches, count: 3 }));
+        add(createSeagulls({ center: [0, -8], flyers: 2, radius: 10, perches: [{ x: 13, z: 1 }] }));
+        const flowers = [{ x: -9, z: 8 }];
+        add(createBees({ patches: flowers, count: 5 }));
+        flowers.forEach(({ x, z }) => { for (let i = 0; i < 6; i++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.8, 5), new THREE.MeshToonMaterial({ color: [0xe8372c, 0xf2c200, 0x9b4fd6][i % 3] })); f.position.set(x + Math.cos(i) * 1.4, 0.4, z + Math.sin(i) * 1.4); scene.add(f); } });
+
+        document.querySelectorAll('#info button').forEach((b) => b.onclick = () => { player.z = b.dataset.p === 'cerca' ? 6 : 40; player.x = b.dataset.p === 'cerca' ? 2 : 0; });
+        if (new URLSearchParams(location.search).get('player') === 'cerca') { player.z = 6; player.x = 2; }
+
+        const clock = new THREE.Clock(); let t = 0;
+        function loop() {
+            requestAnimationFrame(loop);
+            const dt = Math.min(clock.getDelta(), 0.05); t += dt;
+            groups.forEach((g) => g.update(t, dt, player));
+            camera.position.set(Math.sin(t * 0.08) * 6 + 1, 4.2, 19);
+            camera.lookAt(0, 0.9, 0);
+            renderer.render(scene, camera);
+        }
+        loop();
+        addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+    </script>
+</body>
+</html>

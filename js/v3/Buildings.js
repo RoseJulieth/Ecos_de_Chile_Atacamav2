@@ -194,11 +194,107 @@ export function createTowel(color = 0xe8372c) {
 // =====================================================================
 // BATALLÓN ATACAMA
 // =====================================================================
-/** Carpa de campaña (pirámide). */
-export function createTent({ color = 0xd9c9a0 } = {}) {
+// ---------- Carpa de campaña ----------
+/** Prisma triangular (techo a dos aguas) con la cumbrera a lo largo de Z. Sin cara frontal: ahí va la puerta. */
+function roofGeometry(w, h, d) {
+    const hw = w / 2, hd = d / 2;
+    const v = [
+        // pendiente izquierda
+        -hw, 0, -hd, -hw, 0, hd, 0, h, hd,   -hw, 0, -hd, 0, h, hd, 0, h, -hd,
+        // pendiente derecha
+        hw, 0, hd, hw, 0, -hd, 0, h, -hd,    hw, 0, hd, 0, h, -hd, 0, h, hd,
+        // fondo
+        -hw, 0, -hd, 0, h, -hd, hw, 0, -hd
+    ];
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(new Array((v.length / 3) * 2).fill(0), 2));
+    g.computeVertexNormals();
+    return g;
+}
+
+/** Cilindro delgado entre dos puntos (cuerdas, mástiles inclinados). */
+function cylBetween(a, bb, r, color) {
+    const va = new THREE.Vector3(...a), vb = new THREE.Vector3(...bb);
+    const dir = vb.clone().sub(va);
+    const mid = va.clone().add(vb).multiplyScalar(0.5);
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+    const e = new THREE.Euler().setFromQuaternion(q);
+    return piece(new THREE.CylinderGeometry(r, r, dir.length(), 5), color, { pos: [mid.x, mid.y, mid.z], rot: [e.x, e.y, e.z] });
+}
+
+/**
+ * Carpa de campaña de lona: paredes bajas, techo a dos aguas, puerta abierta con interior oscuro,
+ * mástiles, tensores con estacas y alfombra de entrada. La puerta mira hacia +Z.
+ * stripe: color de las franjas del techo (opcional, para carpas de colores).
+ */
+export function createTent({ color = 0xd9c9a0, stripe = null, w = 4.2, d = 5.4, wallH = 0.9, roofH = 2.3 } = {}) {
     const g = new THREE.Group();
-    g.add(piece(new THREE.ConeGeometry(2.6, 3, 4), color, { pos: [0, 1.5, 0], rot: [0, Math.PI / 4, 0], scale: [1, 1, 1.3] }));
-    g.add(box(1.0, 1.6, 0.08, 0x3a2f22, [0, 0.8, 2.35], [-0.12, 0, 0]));
+    const dark = new THREE.Color(color).multiplyScalar(0.72).getHex();
+    const wood = 0x6b4a2e, rope = 0xcdbb94;
+    const hd = d / 2, hw = w / 2, ridgeY = wallH + roofH;
+
+    // paredes laterales y trasera
+    for (const s of [-1, 1]) g.add(box(0.07, wallH, d, dark, [s * hw, wallH / 2, 0]));
+    g.add(box(w, wallH, 0.07, dark, [0, wallH / 2, -hd]));
+
+    // techo: en tramos para poder alternar franjas de color
+    const segs = stripe ? 6 : 1;
+    for (let i = 0; i < segs; i++) {
+        g.add(piece(roofGeometry(w + 0.35, roofH, d / segs + 0.02), stripe && i % 2 ? stripe : color, {
+            pos: [0, wallH - 0.05, -hd + (i + 0.5) * (d / segs)]
+        }));
+    }
+    // vuelo del techo en el borde de las paredes
+    for (const s of [-1, 1]) g.add(box(0.12, 0.1, d + 0.1, dark, [s * (hw + 0.1), wallH - 0.03, 0]));
+
+    // puerta: dos solapas de lona que se juntan en la cumbrera dejan una abertura triangular (interior oscuro detrás)
+    const W = hw + 0.17, H = wallH + roofH - 0.05, o = W * 0.4, top = wallH - 0.05;
+    const flap = (pts) => {
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Array((pts.length / 3) * 2).fill(0), 2));
+        geo.computeVertexNormals();
+        return piece(geo, color, { pos: [0, 0, hd] });
+    };
+    g.add(flap([-W, 0, 0, -o, 0, 0, 0, H, 0,   -W, 0, 0, 0, H, 0, -W, top, 0]));      // solapa izquierda
+    g.add(flap([o, 0, 0, W, 0, 0, 0, H, 0,     W, 0, 0, W, top, 0, 0, H, 0]));         // solapa derecha
+    // pared interior oscura y piso, para que la abertura no deje ver a través de la carpa
+    const inner = new THREE.BufferGeometry();
+    inner.setAttribute('position', new THREE.Float32BufferAttribute([-W * 0.9, 0, 0, W * 0.9, 0, 0, 0, H * 0.97, 0], 3));
+    inner.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0], 2));
+    inner.computeVertexNormals();
+    g.add(piece(inner, 0x241b12, { pos: [0, 0.02, -hd + 0.2] }));
+    g.add(box(w * 0.95, 0.04, d * 0.95, 0x4a3a28, [0, 0.03, 0]));
+    // bordes de la puerta reforzados y atados
+    for (const s of [-1, 1]) {
+        g.add(cylBetween([s * o, 0.02, hd + 0.03], [0, H * 0.985, hd + 0.03], 0.06, dark));
+        g.add(piece(new THREE.TorusGeometry(0.13, 0.03, 4, 6), rope, { pos: [s * o * 0.55, H * 0.42, hd + 0.05], rot: [0, 0, 0] }));
+    }
+    // piso de entrada
+    g.add(box(w * 0.55, 0.05, 1.5, 0x6b4f30, [0, 0.03, hd + 0.85]));
+
+    // mástil de cumbrera con remates y postes
+    g.add(cyl(0.06, 0.06, d + 1.4, wood, [0, ridgeY, 0], 6, [Math.PI / 2, 0, 0]));
+    for (const z of [-hd - 0.7, hd + 0.7]) {
+        g.add(piece(new THREE.SphereGeometry(0.1, 5, 4), 0xd4a017, { pos: [0, ridgeY, z] }));
+        g.add(cyl(0.06, 0.07, ridgeY, wood, [0, ridgeY / 2, z], 6));
+    }
+
+    // tensores y estacas
+    const stake = (x, z) => g.add(piece(new THREE.ConeGeometry(0.07, 0.35, 4), wood, { pos: [x, 0.12, z], rot: [Math.PI, 0, 0] }));
+    for (const z of [-hd - 0.7, hd + 0.7]) {
+        for (const s of [-1, 1]) {
+            const sx = s * (hw + 1.5), sz = z + Math.sign(z) * 1.4;
+            g.add(cylBetween([0, ridgeY, z], [sx, 0.05, sz], 0.018, rope));
+            stake(sx, sz);
+        }
+    }
+    for (const s of [-1, 1]) for (const z of [-hd * 0.5, hd * 0.5]) {
+        const sx = s * (hw + 1.1);
+        g.add(cylBetween([s * (hw + 0.1), wallH, z], [sx, 0.05, z], 0.018, rope));
+        stake(sx, z);
+    }
     return bake(g);
 }
 

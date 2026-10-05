@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { piece, bake, range, createCactus, createRock, createRockCluster, createFlowerPatch } from '../ProceduralAssets.js';
 import * as B from './Buildings.js';
-import { createSeagulls, createBees } from './Fauna.js';
+import { createSeagulls, createBees, createCats, createDogs, createFoxes, createBirds } from './Fauna.js';
 
 const toRad = (deg) => (deg * Math.PI) / 180;
 const polar = (phiDeg, r) => ({ x: r * Math.sin(toRad(phiDeg)), z: -r * Math.cos(toRad(phiDeg)) }); // phi=0 -> -Z (adelante)
@@ -120,6 +120,11 @@ const copiapo = {
         ctx.scatter(8, () => createCactus(), { rMin: 30, collide: 0.7, minGap: 7 });
         ctx.scatter(6, () => createRockCluster(), { rMin: 30, collide: 1.8, minGap: 8 });
         ctx.scatter(16, () => B.createTree({ height: 2.6, size: 0.9 }), { rMin: 26, collide: 0.7, minGap: 6, camBlock: 2.4 });
+
+        // mascotas del pueblo: gatos tímidos y perros (quiltros) curiosos
+        const pet = { colliders: ctx.colliders, limit: 58 };
+        ctx.fauna(createCats({ ...pet, roam: 9, homes: [{ x: -17, z: 13 }, { x: 22, z: -9 }] }));
+        ctx.fauna(createDogs({ ...pet, roam: 12, homes: [{ x: 15, z: 17 }, { x: -20, z: -12 }] }));
     }
 };
 
@@ -164,6 +169,17 @@ const diaguita = {
         ctx.avoid.push({ x: 0, z: -2, r: 17 }, { x: 0, z: 20, r: 6 });
         ctx.scatter(12, () => createCactus(), { rMin: 20, collide: 0.7, minGap: 4 });
         ctx.scatter(9, () => createRockCluster(), { rMin: 20, collide: 1.8, minGap: 5 });
+
+        // diucas: se posan en los muros, las estelas y las vasijas, y saltan de una a otra
+        const perches = [];
+        for (let i = 0; i < 8; i++) {
+            if (i === 0) continue;
+            perches.push({ x: 15 * Math.sin(toRad(i * 45)), y: 1.85, z: -2 + 15 * Math.cos(toRad(i * 45)) });
+        }
+        perches.push({ x: -5.5, y: 4.4, z: 17 }, { x: 5.5, y: 4.4, z: 17 });
+        [[-22, -2], [22, -4], [-14, -22], [16, -23]].forEach(([x, z]) => perches.push({ x, y: 1.3, z }));
+        perches.push({ x: 3, y: 0.05, z: -14 }, { x: -4, y: 0.05, z: 8 }, { x: 8, y: 0.05, z: 3 });
+        ctx.fauna(createBirds({ perches, count: 8 }));
     }
 };
 
@@ -210,7 +226,7 @@ const batallon = {
         // bandera central y carpas
         ctx.place(B.createFlag(), 0, -8, { collide: 0.6 });
         [[-16, -4, 90], [16, -4, -90], [-22, -16, 60], [22, -16, -60], [-9, -24, 20], [9, -24, -20]].forEach(([x, z], i) => {
-            ctx.place(B.createTent({ color: i % 2 ? 0xd9c9a0 : 0xc9b88a }), x, z, { rot: faceTo(x, z, 0, -4), collide: 2.6, camBlock: 2.4 });
+            ctx.placeBox(B.createTent({ color: i % 2 ? 0xd9c9a0 : 0xc9b88a }), x, z, 4.8, 6.2, { rot: faceTo(x, z, 0, -4) });
         });
         // artillería y trincheras
         ctx.place(B.createCannon(), -9, -1, { rot: Math.PI, collide: 1.3 });
@@ -232,6 +248,9 @@ const batallon = {
         ctx.avoid.push({ x: 0, z: -6, r: 14 }, { x: 0, z: 20, r: 6 });
         ctx.scatter(8, () => createCactus(), { rMin: 22, collide: 0.7, minGap: 4 });
         ctx.scatter(8, () => createRockCluster(), { rMin: 20, collide: 1.8, minGap: 5 });
+
+        // zorros culpeo que rondan el campamento (se esconden si te acercas)
+        ctx.fauna(createFoxes({ colliders: ctx.colliders, limit: 42, roam: 6, homes: [{ x: -31, z: -22 }, { x: 31, z: -25 }, { x: -33, z: 6 }] }));
     }
 };
 
@@ -302,7 +321,7 @@ const florido = {
         ctx.npc('npc_010', 8, 9, faceTo(8, 9, 0, 20));
         ctx.npc('npc_012', -16, 9, faceTo(-16, 9, 0, 20));
         ctx.place(telescope(), -19, 7, { rot: 0.8, collide: 0.9 });
-        ctx.place(B.createTent({ color: 0xf0e6d2 }), 14, 11, { rot: faceTo(14, 11, 0, 20), collide: 2.6, camBlock: 2.4 });
+        ctx.placeBox(B.createTent({ color: 0xf3efe4, stripe: 0x3a78c2, w: 3.8, d: 4.8 }), 14, 11, 4.4, 5.6, { rot: faceTo(14, 11, 0, 20) });
         ctx.sign({
             title: 'Desierto Florido', x: -6, z: 22, rot: 0,
             description: 'Ocurre cada 5 a 7 años, cuando las lluvias del fenómeno de El Niño despiertan semillas que han permanecido latentes durante décadas. Aparecen más de 200 especies de flores.'
