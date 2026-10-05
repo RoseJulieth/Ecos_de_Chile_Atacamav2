@@ -13,6 +13,7 @@ export class CameraController {
         this.minVerticalAngle = 0.1;  // Límite inferior
         this.maxVerticalAngle = 1.4;  // Límite superior
 
+        this.targetHeight = 2.0;
         this.raycaster = new THREE.Raycaster();
 
         // Capturar mouse
@@ -20,11 +21,14 @@ export class CameraController {
             domElement.requestPointerLock();
         });
 
+        // Una sola función enlazada: con .bind() en cada llamada, removeEventListener nunca quitaba la anterior
+        // y cada vez que se recapturaba el mouse la cámara giraba más rápido.
+        this.onMouseMove = this.onMouseMove.bind(this);
         document.addEventListener('pointerlockchange', () => {
             if (document.pointerLockElement === domElement) {
-                document.addEventListener('mousemove', this.onMouseMove.bind(this));
+                document.addEventListener('mousemove', this.onMouseMove);
             } else {
-                document.removeEventListener('mousemove', this.onMouseMove.bind(this));
+                document.removeEventListener('mousemove', this.onMouseMove);
             }
         });
     }
@@ -38,7 +42,7 @@ export class CameraController {
     update(targetPosition, obstacles = []) {
         // 🎥 PUNTO DE ENFOQUE EN EL JUGADOR
         // Con jugador escala 2.5, apuntar al centro del personaje
-        const targetHeight = 2.0;  // Altura del centro del jugador (ajustado para escala 2.5)
+        const targetHeight = this.targetHeight ?? 2.0;  // Altura del punto que mira la cámara
         const elevatedTarget = new THREE.Vector3(
             targetPosition.x,
             targetPosition.y + targetHeight,

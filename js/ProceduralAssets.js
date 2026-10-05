@@ -20,8 +20,9 @@ function mulberry32(seed) {
 
 let rand = mulberry32(2024);
 export function setSeed(seed) { rand = mulberry32(seed); }
-const range = (a, b) => a + (b - a) * rand();
-const pick = (arr) => arr[Math.floor(rand() * arr.length)];
+export const range = (a, b) => a + (b - a) * rand();
+export const pick = (arr) => arr[Math.floor(rand() * arr.length)];
+export const random = () => rand();
 
 // ---------- Material toon compartido ----------
 let gradientMap = null;
@@ -69,7 +70,7 @@ function jitter(geometry, amount, { keepBase = false } = {}) {
 }
 
 /** Pieza = geometría + color + posición/rotación/escala; se junta con las demás en bake(). */
-function piece(geometry, color, { pos, rot, scale } = {}) {
+export function piece(geometry, color, { pos, rot, scale } = {}) {
     const mesh = new THREE.Mesh(geometry);
     mesh.userData.color = new THREE.Color(color);
     if (pos) mesh.position.set(...pos);
@@ -79,7 +80,7 @@ function piece(geometry, color, { pos, rot, scale } = {}) {
 }
 
 /** Junta todas las piezas de `root` en una sola malla con caras planas y colores por vértice. */
-function bake(root) {
+export function bake(root) {
     root.updateMatrixWorld(true);
     const geometries = [];
     root.traverse((child) => {
@@ -220,27 +221,32 @@ export function createFlowerPatch({ count = 8, radius = 3 } = {}) {
 // ---------- 4. CERROS / DUNAS ----------
 const HILL_COLORS = [0xd9a56e, 0xcf9a62, 0xe0b07a, 0xc88f5a];
 
-function hillPiece(radius, height) {
+function hillPiece(radius, height, colors = HILL_COLORS) {
     // Media esfera con pocos segmentos = domo facetado; se achata y se deforma un poco
     const geo = new THREE.SphereGeometry(radius, 9, 4, 0, Math.PI * 2, 0, Math.PI / 2);
     geo.scale(range(0.9, 1.4), height / radius, 1);
     jitter(geo, radius * 0.08, { keepBase: true });
-    return piece(geo, pick(HILL_COLORS), { pos: [0, -0.3, 0], rot: [0, rand() * Math.PI * 2, 0] });
+    return piece(geo, pick(colors), { pos: [0, -0.3, 0], rot: [0, rand() * Math.PI * 2, 0] });
 }
 
-export function createHill({ radius = 18, height = 7 } = {}) {
+export function createHill({ radius = 18, height = 7, colors } = {}) {
     const root = new THREE.Group();
-    root.add(hillPiece(radius, height));
+    root.add(hillPiece(radius, height, colors));
     return bake(root);
 }
 
-/** Cordillera de cerros alrededor del mapa, todo en una sola malla. */
-export function createHillRing({ inner = 80, outer = 130, count = 16 } = {}) {
+/**
+ * Cordillera de cerros alrededor del mapa, todo en una sola malla.
+ * colors: paleta de los cerros. skip(angulo): devuelve true para dejar un hueco (ej. para ver el mar).
+ */
+export function createHillRing({ inner = 80, outer = 130, count = 16, colors, skip, minH = 7, maxH = 16 } = {}) {
     const root = new THREE.Group();
     for (let i = 0; i < count; i++) {
         const a = (i / count) * Math.PI * 2 + range(-0.15, 0.15);
         const d = range(inner, outer);
-        const hill = hillPiece(range(18, 34), range(7, 16));
+        const r = range(18, 34), h = range(minH, maxH);   // se sortean siempre para que la semilla no cambie
+        if (skip && skip(a)) continue;
+        const hill = hillPiece(r, h, colors);
         hill.position.x = Math.cos(a) * d;
         hill.position.z = Math.sin(a) * d;
         root.add(hill);
@@ -291,5 +297,26 @@ export function addOutline(mesh, thickness = 0.05, color = 0x1d140b) {
     }
     const hull = new THREE.Mesh(geo, outlineMaterials.get(color));
     mesh.add(hull);
+    return mesh;
+}
+
+/**
+ * Junta en UNA sola malla todos los objetos horneados (cactus, rocas, casas...) que cuelgan de `root`.
+ * Respeta la posición/rotación/escala de cada uno. Ideal para el decorado estático de una escena:
+ * cientos de objetos terminan siendo 1 draw call.
+ */
+export function mergeBaked(root) {
+    root.updateMatrixWorld(true);
+    const material = getToonMaterial();
+    const geometries = [];
+    root.traverse((child) => {
+        if (!child.isMesh || child.material !== material) return;
+        const g = child.geometry.clone();
+        g.applyMatrix4(child.matrixWorld);
+        geometries.push(g);
+    });
+    const mesh = new THREE.Mesh(mergeGeometries(geometries, false), material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     return mesh;
 }

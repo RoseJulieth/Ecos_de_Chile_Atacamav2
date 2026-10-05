@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista previa - personajes</title>
+    <style>
+        html, body { margin: 0; height: 100%; overflow: hidden; background: #7fb3e6; font-family: sans-serif; }
+        #info { position: fixed; left: 10px; bottom: 10px; padding: 8px 12px; color: white; background: rgba(0,0,0,.55); border-radius: 6px; font-size: 13px; }
+        #info button { margin-left: 6px; }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="info">Modo: <button data-m="walk">Caminar</button><button data-m="idle">Quieto</button><button data-m="wave">Saludar</button><button data-m="jump">Saltar</button></div>
+    <script type="module">
+        import * as THREE from 'three';
+        import { createGround } from './js/ProceduralAssets.js';
+        import { createCharacter, LOOKS } from './js/v3/Characters.js';
+
+        const params = new URLSearchParams(location.search);
+        let mode = params.get('mode') || 'walk';
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x7fb3e6);
+        const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 200);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        scene.add(new THREE.HemisphereLight(0xdcebff, 0xb98a5c, 0.8));
+        const sun = new THREE.DirectionalLight(0xffffff, 2.6);
+        sun.position.set(10, 30, 20); sun.castShadow = true;
+        Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 20, bottom: -20 });
+        sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.06;
+        scene.add(sun);
+        scene.add(createGround(200));
+
+        const ids = Object.keys(LOOKS);
+        const chars = ids.map((id, i) => {
+            const c = createCharacter(LOOKS[id]);
+            const row = i < 7 ? 0 : 1, col = i % 7;
+            c.root.position.set((col - 3) * 3.4, 0, row * -5.5);
+            c.root.rotation.y = 0.35;
+            scene.add(c.root);
+            return c;
+        });
+
+        document.querySelectorAll('#info button').forEach(b => b.onclick = () => mode = b.dataset.m);
+
+        camera.position.set(0, 3.2, 12.5);
+        camera.lookAt(0, 1.8, -2);
+        const clock = new THREE.Clock();
+        let t = 0;
+        function loop() {
+            requestAnimationFrame(loop);
+            const dt = Math.min(clock.getDelta(), 0.05);
+            t += dt;
+            chars.forEach((c, i) => {
+                c.update(dt, {
+                    moving: mode === 'walk', speed: 1,
+                    waving: mode === 'wave',
+                    airborne: mode === 'jump' && Math.sin(t * 3 + i) > 0
+                });
+                c.root.position.y = mode === 'jump' ? Math.max(0, Math.sin(t * 3 + i)) * 1.2 : 0;
+            });
+            renderer.render(scene, camera);
+        }
+        loop();
+        addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+    </script>
+</body>
+</html>

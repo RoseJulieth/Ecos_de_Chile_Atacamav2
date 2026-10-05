@@ -3,6 +3,23 @@
 > Para probarlo en local (necesita un servidor; abrir `index.html` con doble clic no funciona):
 > `node server.js` y abrir http://localhost:8000 — o bien `python -m http.server 8000`.
 
+> ### Versión por escenas (actual)
+> El juego (`index.html`) ahora es un pueblo central, **Copiapó**, con 5 portales hacia las escenas
+> **Cultura Diaguita, Batallón Atacama, Plata de Chañarcillo, Desierto Florido y Bahía Inglesa**; cada una guarda un fragmento histórico.
+> Personajes, casas y objetos se generan por código (low-poly con sombreado toon), sin modelos 3D externos.
+>
+> | Archivo | Qué contiene |
+> |---|---|
+> | `js/v3/scenes.js` | Las 6 escenas (qué hay y dónde) |
+> | `js/v3/World.js` | Motor de escenas: construye, colisiones, NPC, portales |
+> | `js/v3/Characters.js` | Personajes y la "receta" de cada NPC |
+> | `js/v3/Buildings.js` | Casas, iglesia, palmeras, botes, mina, portales, reliquias… |
+> | `js/ProceduralAssets.js` | Cactus, rocas, flores, cerros y utilidades de dibujo |
+> | `js/v3/main.js` | Arranque, bucle del juego, interacción y guardado |
+>
+> La versión anterior (mapa único con modelos descargados) sigue disponible en `index_clasico.html`.
+> Vistas previas de los objetos: `preview_assets.html` y `preview_characters.html`.
+
 # 🏜️ Ecos de Chile: Atacama
 
 ## Experiencia Educativa Interactiva 3D

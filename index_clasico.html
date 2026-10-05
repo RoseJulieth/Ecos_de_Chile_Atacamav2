@@ -532,52 +532,6 @@
                 grid-template-columns: 1fr;
             }
         }
-
-        /* ===== Transición entre escenas ===== */
-        #fade {
-            position: fixed;
-            inset: 0;
-            z-index: 150;
-            background: #140c06;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.45s ease;
-        }
-
-        #fade.on {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        #scene-title {
-            position: fixed;
-            top: 14%;
-            left: 50%;
-            z-index: 140;
-            transform: translate(-50%, -12px);
-            text-align: center;
-            color: #fff6dc;
-            text-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-
-        #scene-title.show {
-            opacity: 1;
-            transform: translate(-50%, 0);
-        }
-
-        #scene-title h2 {
-            margin: 0;
-            font-size: clamp(30px, 5vw, 54px);
-            color: #FFD700;
-        }
-
-        #scene-title p {
-            margin: 6px 0 0;
-            font-size: clamp(14px, 2vw, 20px);
-        }
     </style>
     <script type="importmap">
         {
@@ -922,10 +876,7 @@
         </div>
     </div>
 
-        <div id="fade"></div>
-    <div id="scene-title"><h2></h2><p></p></div>
-
-    <!-- Pantalla de carga -->
+        <!-- Pantalla de carga -->
     <div id="loading-screen">
         <h1>Ecos de Chile</h1>
         <h2>Región de Atacama</h2>
@@ -954,7 +905,7 @@
         </div>
     </div>
 
-    <script type="module" src="js/v3/main.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>
