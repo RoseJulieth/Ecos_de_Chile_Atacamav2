@@ -237,13 +237,25 @@ def main():
     if not meshes:
         raise RuntimeError("Selecciona al menos un objeto tipo Mesh antes de ejecutar.")
 
-    setup_eevee(scene)
-    paint_mat = build_paint_material()
-    outline_mat = build_outline_material()
-    for obj in meshes:
-        apply_to_object(obj, paint_mat, outline_mat)
-    setup_compositor(scene)
-    print(f"[NPR] Estilo aplicado a {len(meshes)} objeto(s).")
+    import traceback
 
+    def step(name, fn, *args):
+        try:
+            result = fn(*args)
+            print(f"[NPR] OK: {name}")
+            return result
+        except Exception:
+            print(f"[NPR] ERROR en '{name}':")
+            traceback.print_exc()
+            return None
+
+    step("Eevee", setup_eevee, scene)
+    paint_mat = step("Material pictórico", build_paint_material)
+    outline_mat = step("Material contorno", build_outline_material)
+    if paint_mat and outline_mat:
+        for obj in meshes:
+            step(f"Contorno en {obj.name}", apply_to_object, obj, paint_mat, outline_mat)
+    step("Compositor", setup_compositor, scene)
+    print(f"[NPR] Terminado ({len(meshes)} objeto(s)). Revisa la consola por errores.")
 
 main()
