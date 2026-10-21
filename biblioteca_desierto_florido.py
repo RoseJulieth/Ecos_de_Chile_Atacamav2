@@ -63,6 +63,11 @@ PALETAS = {
     "ala":          ((0.55, 0.55, 0.62), (0.82, 0.82, 0.86), (0.97, 0.97, 0.98)),
     "oliva":        ((0.20, 0.22, 0.15), (0.45, 0.45, 0.30), (0.75, 0.72, 0.55)),
     "rosa_polilla": ((0.45, 0.20, 0.30), (0.85, 0.45, 0.50), (1.00, 0.75, 0.75)),
+    "guanaco":      ((0.35, 0.22, 0.20), (0.70, 0.46, 0.30), (0.93, 0.76, 0.52)),
+    "gris_zorro":   ((0.26, 0.27, 0.34), (0.55, 0.55, 0.58), (0.86, 0.83, 0.78)),
+    "naranja_mariposa": ((0.35, 0.12, 0.15), (0.88, 0.32, 0.12), (1.00, 0.62, 0.26)),
+    "saltamontes":  ((0.22, 0.20, 0.16), (0.48, 0.42, 0.30), (0.78, 0.70, 0.50)),
+    "iguana":       ((0.20, 0.17, 0.15), (0.50, 0.38, 0.26), (0.80, 0.66, 0.46)),
 }
 
 
@@ -212,9 +217,10 @@ def ellipsoid(b, centro, escala, pal, rot=None, slot_fn=None, recorta=None, seg=
         bmesh.ops.delete(b.bm, geom=borrar, context="FACES")
 
 
-def ala(b, raiz, contorno, pal, lado=1, angulo=25.0, escala=1.0):
-    """Ala plana (abanico de triángulos) levantada `angulo` grados."""
-    pts = [Vector((lado * x * escala, y * escala, 0.0)) for x, y in contorno]
+def ala(b, raiz, contorno, pal, lado=1, angulo=25.0, escala=1.0, zoff=0.0):
+    """Ala plana (abanico de triángulos) levantada `angulo` grados.
+    zoff separa en z local las capas superpuestas (manchas, bordes)."""
+    pts = [Vector((lado * x * escala, y * escala, zoff)) for x, y in contorno]
     area = sum(pts[i].x * pts[(i + 1) % len(pts)].y - pts[(i + 1) % len(pts)].x * pts[i].y
                for i in range(len(pts)))
     if area < 0:
@@ -665,6 +671,180 @@ def sp_cururo(b, rng):
 
 
 # --------------------------------------------------------------------------
+# Fauna, segunda tanda
+# --------------------------------------------------------------------------
+def _escalar(pts, f):
+    cx = sum(p[0] for p in pts) / len(pts)
+    cy = sum(p[1] for p in pts) / len(pts)
+    return [(cx + (x - cx) * f, cy + (y - cy) * f) for x, y in pts]
+
+
+def _circulo(cx, cy, r, n=10):
+    return [(cx + r * math.cos(2 * math.pi * i / n), cy + r * math.sin(2 * math.pi * i / n)) for i in range(n)]
+
+
+def _spots_dir(zs, thetas_por_fila):
+    """Direcciones unitarias en la esfera (z = largo del cuerpo, θ alrededor)."""
+    out = []
+    for fila, z in enumerate(zs):
+        r = math.sqrt(max(1 - z * z, 0.0))
+        for th in thetas_por_fila[fila % len(thetas_por_fila)]:
+            a = math.radians(th)
+            out.append(Vector((r * math.cos(a), r * math.sin(a), z)))
+    return out
+
+
+def sp_guanaco(b, rng):
+    """Guanaco (Lama guanicoe): cuerpo pardo, vientre y patas bajas crema, cara gris."""
+    ellipsoid(b, (0, 0, 0.85), (0.23, 0.52, 0.26), "guanaco",
+              slot_fn=lambda d: "crema" if d.z < -0.35 else "guanaco", seg=16, anillos=10)
+    ellipsoid(b, (0, -0.34, 0.86), (0.21, 0.26, 0.23), "guanaco", seg=14, anillos=9)
+    cuello = [Vector(p) for p in ((0, 0.36, 0.95), (0, 0.50, 1.20), (0, 0.58, 1.50), (0, 0.64, 1.66))]
+    tube(b, cuello, [0.13, 0.10, 0.075, 0.065], "guanaco", sides=10)
+    ellipsoid(b, (0, 0.74, 1.72), (0.075, 0.16, 0.075), "gris_zorro", rot=Matrix.Rotation(-0.25, 4, "X"))
+    ellipsoid(b, (0, 0.88, 1.675), (0.032, 0.03, 0.026), "negro", seg=8, anillos=5)
+    for lado in (-1, 1):
+        ellipsoid(b, (lado * 0.05, 0.66, 1.83), (0.02, 0.016, 0.075), "guanaco", seg=8, anillos=5)
+        ellipsoid(b, (lado * 0.072, 0.79, 1.745), (0.016, 0.016, 0.016), "negro", seg=6, anillos=4)
+        for y, adelanto in ((0.30, 0.02), (-0.32, -0.02)):
+            x = lado * 0.14
+            tube(b, [Vector((x, y, 0.80)), Vector((x, y + adelanto, 0.43))], [0.085, 0.05], "guanaco", sides=8)
+            tube(b, [Vector((x, y + adelanto, 0.43)), Vector((x, y, 0.04))], [0.045, 0.030], "crema", sides=8)
+            ellipsoid(b, (x, y + 0.01, 0.02), (0.035, 0.055, 0.02), "negro", seg=8, anillos=5)
+    tube(b, [Vector((0, -0.62, 1.0)), Vector((0, -0.72, 1.08)), Vector((0, -0.75, 1.17))],
+         [0.05, 0.04, 0.025], "guanaco", sides=6)
+
+
+def sp_mariposa_tarde_colorada(b, rng):
+    """Vanessa carye: alas naranjas con borde negro, manchas blancas en el ápice y ocelos."""
+    fore = [(0, 0), (0.06, 0.13), (0.28, 0.22), (0.50, 0.20), (0.60, 0.08), (0.55, -0.04), (0.34, -0.11), (0.10, -0.09)]
+    hind = [(0, 0), (0.05, -0.03), (0.25, -0.08), (0.38, -0.18), (0.30, -0.30), (0.12, -0.26), (0.02, -0.14)]
+    ellipsoid(b, (0, 0.05, 0.12), (0.045, 0.07, 0.045), "negro", seg=10, anillos=6)
+    ellipsoid(b, (0, -0.12, 0.11), (0.035, 0.15, 0.035), "negro", seg=10, anillos=6)
+    ellipsoid(b, (0, 0.14, 0.13), (0.035, 0.03, 0.035), "negro", seg=8, anillos=5)
+    for lado in (-1, 1):
+        tube(b, [Vector((lado * 0.015, 0.16, 0.15)), Vector((lado * 0.05, 0.26, 0.21)), Vector((lado * 0.07, 0.32, 0.24))],
+             [0.005, 0.004, 0.009], "negro", sides=4)
+        ala(b, (lado * 0.04, 0.08, 0.13), fore, "negro", lado, 32.0)
+        ala(b, (lado * 0.04, 0.08, 0.13), _escalar(fore, 0.80), "naranja_mariposa", lado, 32.0, zoff=0.004)
+        ala(b, (lado * 0.04, 0.08, 0.13), _circulo(0.52, 0.14, 0.03), "crema", lado, 32.0, zoff=0.008)
+        ala(b, (lado * 0.04, 0.08, 0.13), _circulo(0.47, 0.08, 0.02), "crema", lado, 32.0, zoff=0.008)
+        ala(b, (lado * 0.04, 0.0, 0.125), hind, "negro", lado, 26.0)
+        ala(b, (lado * 0.04, 0.0, 0.125), _escalar(hind, 0.78), "naranja_mariposa", lado, 26.0, zoff=0.004)
+        ala(b, (lado * 0.04, 0.0, 0.125), _circulo(0.20, -0.20, 0.04), "negro", lado, 26.0, zoff=0.008)
+        ala(b, (lado * 0.04, 0.0, 0.125), _circulo(0.20, -0.20, 0.02), "azul_suspiro", lado, 26.0, zoff=0.01)
+        for y in (0.06, 0.0):
+            pata(b, [(lado * 0.02, y, 0.09), (lado * 0.05, y + 0.02, 0.05), (lado * 0.05, y + 0.04, 0.0)], 0.005, "negro", sides=4)
+
+
+def sp_langosta_saltamontes(b, rng):
+    """Elasmoderus lutescens: saltamontes grande y áptero, pardo, con cresta en el pronoto."""
+    ellipsoid(b, (0, -0.28, 0.28), (0.08, 0.32, 0.08), "saltamontes")
+    ellipsoid(b, (0, 0.0, 0.30), (0.085, 0.15, 0.095), "saltamontes")
+    ellipsoid(b, (0, 0.0, 0.40), (0.018, 0.13, 0.06), "cafe", seg=8, anillos=6)
+    ellipsoid(b, (0, 0.17, 0.30), (0.07, 0.08, 0.10), "saltamontes", seg=10, anillos=6)
+    for lado in (-1, 1):
+        ellipsoid(b, (lado * 0.06, 0.20, 0.35), (0.03, 0.035, 0.04), "seco", seg=8, anillos=5)
+        tube(b, [Vector((lado * 0.02, 0.24, 0.38)), Vector((lado * 0.08, 0.40, 0.46)), Vector((lado * 0.12, 0.60, 0.44))],
+             [0.007, 0.005, 0.003], "cafe", sides=4)
+        for y, dy in ((0.08, 0.10), (0.0, -0.02)):  # patas anteriores y medias
+            pata(b, [(lado * 0.05, y, 0.27), (lado * 0.17, y + dy * 0.5, 0.34), (lado * 0.24, y + dy, 0.0)],
+                 0.016, "saltamontes")
+        # pata posterior saltadora: fémur grueso hacia atrás y arriba, tibia larga hacia el suelo
+        tube(b, [Vector((lado * 0.06, -0.06, 0.28)), Vector((lado * 0.13, -0.28, 0.42))], [0.036, 0.022],
+             "saltamontes", sides=7)
+        tube(b, [Vector((lado * 0.13, -0.28, 0.42)), Vector((lado * 0.20, -0.46, 0.0))], [0.015, 0.008],
+             "cafe", sides=5)
+
+
+def sp_tenebrio(b, rng):
+    """Psectrascelis pilipes: tenebriónido negro, cuerpo convexo y patas largas."""
+    def estrias(d):
+        idx = int(((math.atan2(d.y, d.x) % (2 * math.pi)) / (2 * math.pi)) * 24)
+        return "cafe" if idx % 3 == 0 else "negro"
+    ellipsoid(b, (0, -0.04, 0.14), (0.14, 0.11, 0.20), "negro", rot=Matrix.Rotation(-math.pi / 2, 4, "X"),
+              slot_fn=estrias, seg=24, anillos=14)
+    ellipsoid(b, (0, 0.15, 0.14), (0.09, 0.07, 0.07), "negro")
+    ellipsoid(b, (0, 0.23, 0.13), (0.05, 0.045, 0.04), "negro", seg=10, anillos=6)
+    _patas_6(b, (0.12, 0.02, -0.10), 0.08, 0.10, 0.09, 0.22, "negro", r=0.014, largo_y=0.06)
+    for s_ in (-1, 1):
+        tube(b, [Vector((s_ * 0.02, 0.27, 0.14)), Vector((s_ * 0.05, 0.33, 0.17)), Vector((s_ * 0.07, 0.37, 0.18))],
+             [0.007, 0.006, 0.005], "negro", sides=4)
+
+
+def _callopistes(b, rng, macho):
+    """Iguana chilena (Callopistes maculatus). Macho: ocelos densos y vientre anaranjado;
+    hembra: franjas dorsolaterales claras y menos ocelos (dimorfismo aproximado)."""
+    if macho:
+        spots = _spots_dir((-0.75, -0.40, -0.05, 0.30, 0.65), [(225, 270, 315), (247, 292)])
+    else:
+        spots = _spots_dir((-0.7, -0.35, 0.0, 0.35, 0.7), [(270,)])
+
+    def dorso(d):
+        n = d.normalized()
+        idx = int(((math.atan2(d.y, d.x) % (2 * math.pi)) / (2 * math.pi)) * 48)
+        if macho and d.y > 0.55:
+            return "rojo_naranja"
+        if not macho and idx in (27, 28, 29, 42, 43, 44) and d.y < 0.2:
+            return "crema"
+        top = d.y < 0.3
+        m = max((n.dot(sp) for sp in spots), default=0.0)
+        if top and m > 0.965:
+            return "cafe"
+        return "iguana"
+    ellipsoid(b, (0, 0.0, 0.13), (0.11, 0.10, 0.31), "iguana", rot=Matrix.Rotation(-math.pi / 2, 4, "X"),
+              slot_fn=dorso, seg=48, anillos=30)
+    ellipsoid(b, (0, 0.27, 0.14), (0.085, 0.10, 0.075), "iguana")
+    k = 1.0 if macho else 0.9
+    ellipsoid(b, (0, 0.40, 0.15), (0.075 * k, 0.13, 0.06 * k), "iguana")
+    ellipsoid(b, (0, 0.52, 0.14), (0.045 * k, 0.08, 0.04 * k), "iguana", seg=10, anillos=6)
+    if macho:
+        ellipsoid(b, (0, 0.42, 0.105), (0.05, 0.08, 0.03), "rojo_naranja", seg=8, anillos=5)
+    for lado in (-1, 1):
+        ellipsoid(b, (lado * 0.06, 0.43, 0.19), (0.014, 0.014, 0.014), "negro", seg=6, anillos=4)
+        for y in (0.20, -0.18):
+            foot = (lado * 0.22, y + 0.04, 0.0)
+            pata(b, [(lado * 0.09, y, 0.13), (lado * 0.19, y - 0.02, 0.10), foot], 0.036, "iguana", sides=6)
+            for fan in (-0.5, 0.0, 0.5):
+                tube(b, [Vector((foot[0], foot[1], 0.012)),
+                         Vector((foot[0] + lado * 0.05 * fan, foot[1] + 0.07, 0.006))], [0.012, 0.006], "iguana", sides=4)
+    cola = [Vector(p) for p in ((0, -0.28, 0.13), (0, -0.55, 0.11), (0.06, -0.85, 0.08),
+                                (0.14, -1.10, 0.05), (0.12, -1.35, 0.03))]
+    tube(b, cola, [0.085, 0.065, 0.045, 0.028, 0.008], "iguana", sides=8)
+
+
+def sp_iguana_chilena_macho(b, rng):
+    _callopistes(b, rng, True)
+
+
+def sp_iguana_chilena_hembra(b, rng):
+    _callopistes(b, rng, False)
+
+
+def sp_zorro_chilla(b, rng):
+    """Lycalopex griseus: gris, vientre crema, patas rojizas, cola espesa de punta negra."""
+    ellipsoid(b, (0, 0, 0.36), (0.12, 0.30, 0.13), "gris_zorro",
+              slot_fn=lambda d: "crema" if d.z < -0.45 else "gris_zorro", seg=14, anillos=9)
+    ellipsoid(b, (0, 0.22, 0.38), (0.11, 0.12, 0.12), "gris_zorro")
+    ellipsoid(b, (0, 0.42, 0.44), (0.085, 0.11, 0.075), "gris_zorro")
+    ellipsoid(b, (0, 0.54, 0.41), (0.04, 0.09, 0.035), "crema", seg=10, anillos=6)
+    ellipsoid(b, (0, 0.63, 0.405), (0.02, 0.02, 0.018), "negro", seg=6, anillos=4)
+    for lado in (-1, 1):
+        ellipsoid(b, (lado * 0.05, 0.38, 0.55), (0.03, 0.018, 0.075), "gris_zorro", seg=8, anillos=5)
+        ellipsoid(b, (lado * 0.07, 0.47, 0.47), (0.014, 0.014, 0.014), "negro", seg=6, anillos=4)
+        for y in (0.20, -0.20):
+            x = lado * 0.07
+            tube(b, [Vector((x, y, 0.32)), Vector((x, y + 0.02, 0.18)), Vector((x, y, 0.025))],
+                 [0.04, 0.026, 0.018], "cafe", sides=6)
+            ellipsoid(b, (x, y + 0.015, 0.012), (0.025, 0.04, 0.014), "cafe", seg=8, anillos=5)
+    cola = [Vector(p) for p in ((0, -0.35, 0.36), (0, -0.50, 0.33), (0, -0.65, 0.28),
+                                (0, -0.78, 0.24), (0, -0.88, 0.21))]
+    tube(b, cola, [0.05, 0.08, 0.085, 0.07, 0.035], "gris_zorro", sides=10)
+    tube(b, [Vector((0, -0.76, 0.245)), Vector((0, -0.86, 0.22)), Vector((0, -0.95, 0.20))],
+         [0.071, 0.05, 0.015], "negro", sides=10)
+
+
+# --------------------------------------------------------------------------
 # Registro
 # --------------------------------------------------------------------------
 ESPECIES = {
@@ -696,6 +876,13 @@ ESPECIES = {
     "abeja_caupolicana": sp_abeja_caupolicana,
     "polilla_colibri": sp_polilla_colibri,
     "cururo": sp_cururo,
+    "guanaco": sp_guanaco,
+    "mariposa_tarde_colorada": sp_mariposa_tarde_colorada,
+    "langosta_saltamontes": sp_langosta_saltamontes,
+    "tenebrio": sp_tenebrio,
+    "iguana_chilena_macho": sp_iguana_chilena_macho,
+    "iguana_chilena_hembra": sp_iguana_chilena_hembra,
+    "zorro_chilla": sp_zorro_chilla,
 }
 
 
