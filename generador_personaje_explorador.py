@@ -409,6 +409,8 @@ def construir(clave, offset_x):
     L = LOOKS[clave]
     nombre = L["nombre"]
     loc_raiz = (offset_x, 0.0, 0.0)
+    for viejo in [o for o in bpy.data.objects if o.name.split(".")[0].startswith(nombre)]:
+        bpy.data.objects.remove(viejo, do_unlink=True)  # limpia ejecuciones previas (también al cambiar de modo)
 
     if JUNTAR_PARTES:
         b = Builder()
